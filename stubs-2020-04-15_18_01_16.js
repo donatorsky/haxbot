@@ -43,7 +43,7 @@ class RoomObject {
 	 * <pre>// Check if disc 4 belongs to collision group "ball":
 	 * var discProps = room.getDiscProperties(4);
 	 * var hasBallFlag = (discProps.cGroup & room.CollisionFlags.ball) != 0;
-	 *
+	 * 
 	 * // Add "wall" to the collision mask of disc 5 without changing any other of it's flags:
 	 * var discProps = room.getDiscProperties(5);
 	 * room.setDiscProperties(5, {cMask: discProps.cMask | room.CollisionFlags.wall});</pre>
@@ -659,8 +659,8 @@ class ScoresObject {
  */
 const TeamID = {
 	Spectators: 0,
-	RedTeam: 1,
-	BlueTeam: 2,
+	RedTeam:    1,
+	BlueTeam:   2,
 };
 
 /**
@@ -777,11 +777,11 @@ class DiscPropertiesObject {
  * <p>The flags are <code>ball</code>, <code>red</code>, <code>blue</code>, <code>redKO</code>, <code>blueKO</code>, <code>wall</code>, <code>all</code>, <code>kick</code>, <code>score</code>, <code>c0</code>, <code>c1</code>, <code>c2</code> and <code>c3</code></p>
  * <p>Example usage:</p>
  * <pre>var cf = room.CollisionFlags;
- *
+ * 
  * // Check if disc 4 belongs to collision group "ball":
  * var discProps = room.getDiscProperties(4);
  * var hasBallFlag = (discProps.cGroup & cf.ball) != 0;
- *
+ * 
  * // Add "wall" to the collision mask of disc 5 without changing any other of it's flags:
  * var discProps = room.getDiscProperties(5);
  * room.setDiscProperties(5, {cMask: discProps.cMask | cf.wall});</pre>
@@ -789,30 +789,30 @@ class DiscPropertiesObject {
  * @enum {number}
  */
 const CollisionFlagsObject = {
-	ball: 1,
-	red: 2,
-	blue: 4,
-	redKO: 8,
+	ball:   1,
+	red:    2,
+	blue:   4,
+	redKO:  8,
 	blueKO: 16,
-	wall: 32,
-	all: 63,
-	kick: 64,
-	score: 128,
-	c0: 268435456,
-	c1: 536870912,
-	c2: 1073741824,
-	c3: -2147483648,
+	wall:   32,
+	all:    63,
+	kick:   64,
+	score:  128,
+	c0:     268435456,
+	c1:     536870912,
+	c2:     1073741824,
+	c3:     -2147483648,
 };
 
 /**
  * @constructor
  *
- * @param {RoomConfigObject} roomConfig
+ * @param {!RoomConfigObject} roomConfig
  *
- * @return {RoomObject}
+ * @return {!RoomObject}
  *
  * @link https://github.com/haxball/haxball-issues/wiki/Headless-Host Documentation
  * @link https://html5.haxball.com/headless                           Headless server host
  */
 function HBInit(roomConfig) {
-};
+}
