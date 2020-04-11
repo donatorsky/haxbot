@@ -3,7 +3,7 @@
 import {ADMINS, STORAGE_PREFIX, ROOM_CONFIG} from './configuration.js';
 import {CommandsStore} from "./Commands/CommandsStore";
 import {Command} from "./Commands/Command";
-import {PlayerInfo, PlayersManager} from "./Players/PlayersManager";
+import {AdminInfo, PlayerInfo, PlayersManager} from "./Players/PlayersManager";
 import {GameManager, GoalInfo} from "./Game/GameManager";
 import {TeamID, TOUCHED_BALL_THRESHOLD} from "./Utils/constants";
 import {calculateDistance, getTime, table} from "./Utils/Utils";
