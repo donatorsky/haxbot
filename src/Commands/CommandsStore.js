@@ -2,30 +2,31 @@
 
 import {Command} from "./Command";
 
-/**
- * @property {Object.<string, Command>} _store
- */
 export class CommandsStore {
-	
+
 	/**
 	 * @param {Array.<Command>} commands
 	 */
 	constructor(commands = []) {
+		/**
+		 * @type {Object.<string, Command>}
+		 * @private
+		 */
 		this._store = {};
-		
+
 		for (const command of commands) {
 			this.add(command);
 		}
 	}
-	
-	
+
+
 	/**
 	 * @param {Command} command
 	 */
 	add(command) {
 		this._store[command.getName().toLocaleLowerCase()] = command;
 	}
-	
+
 	/**
 	 * @param {string} name
 	 *
@@ -34,18 +35,18 @@ export class CommandsStore {
 	has(name) {
 		return this._store.hasOwnProperty(name.toLocaleLowerCase());
 	}
-	
+
 	/**
 	 * @param {string} name
 	 *
-	 * @return {Command|null}
+	 * @return {?Command}
 	 */
 	get(name) {
 		return !this.has(name) ?
 			null :
 			this._store[name.toLocaleLowerCase()];
 	}
-	
+
 	/**
 	 * @param {string} name
 	 * @param {PlayerObject} player
@@ -58,10 +59,10 @@ export class CommandsStore {
 		if (!this.has(name) || !this._store[name].isVisible(player)) {
 			return true;
 		}
-		
+
 		return this._store[name].execute(player, arg, message);
 	}
-	
+
 	/**
 	 * @param {PlayerObject} player
 	 *
@@ -69,13 +70,13 @@ export class CommandsStore {
 	 */
 	getCommandsNames(player) {
 		const commands = [];
-		
+
 		for (const name in this._store) {
 			if (this._store.hasOwnProperty(name) && this._store[name].isVisible(player)) {
 				commands.push(name);
 			}
 		}
-		
+
 		return commands;
 	}
 }

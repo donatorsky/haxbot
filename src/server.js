@@ -17,7 +17,7 @@ let serverLightMode = false;
 
 class Utils {
 	/**
-	 * @return {DiscPropertiesObject|null}
+	 * @return {?DiscPropertiesObject}
 	 */
 	static getBallDiscProperties() {
 		let disc;
@@ -464,10 +464,14 @@ ROOM.setTimeLimit(0);
 ROOM.setTeamsLock(true);
 
 setInterval(function () {
+	console.log('Autosaving players state');
+
 	PLAYERS.flush();
 }, 1000 * 60 * 5);
 
 window.addEventListener("unload", function () {
+	console.log('Saving players state before server is down');
+
 	PLAYERS.flush();
 });
 
@@ -639,7 +643,7 @@ ROOM.onGameTick = function () {
 	}
 
 	/**
-	 * @type {PlayerObject|null}
+	 * @type {?PlayerObject}
 	 */
 	let closestPlayer = null;
 	let playerDiscProperties             = null,

@@ -8,7 +8,7 @@ export class AbstractStorage {
 	 *
 	 * @param {string} key
 	 *
-	 * @return {T|null}
+	 * @return {?T}
 	 */
 	get(key) {
 		throw new Error('Method get() not implemented');

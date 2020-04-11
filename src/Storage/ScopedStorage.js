@@ -16,18 +16,37 @@ export class ScopedStorage extends AbstractStorage {
 		this._prefix = prefix;
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {?T}
+	 */
 	get(key) {
 		return this._decorated.get(this._prefix + key);
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @param {string} key
+	 * @param {T} value
+	 */
 	set(key, value) {
 		this._decorated.set(this._prefix + key, value);
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	has(key) {
 		return this._decorated.has(this._prefix + key);
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {Object.<string, T>}
+	 */
 	all(prefix = undefined) {
 		if (null === prefix) {
 			return this._decorated.all(null);

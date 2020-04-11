@@ -16,18 +16,37 @@ export class InMemoryStorage extends AbstractStorage {
 		this._storage = {};
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {?T}
+	 */
 	get(key) {
 		return this._storage[key] ?? null;
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @param {string} key
+	 * @param {T} value
+	 */
 	set(key, value) {
 		this._storage[key] = value;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	has(key) {
 		return this._storage.hasOwnProperty(key);
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {Object.<string, T>}
+	 */
 	all(prefix = undefined) {
 		if (undefined === prefix || null === prefix) {
 			return this._storage;
