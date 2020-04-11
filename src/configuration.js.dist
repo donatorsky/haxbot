@@ -1,0 +1,40 @@
+'use strict';
+
+// SERVER CONFIGURATION DEFAULTS
+
+/**
+ * Game server settings.
+ *
+ * @see HBInit
+ */
+export const ROOM_CONFIG = {
+	roomName: 'My Room Name',
+	maxPlayers: 12,
+	noPlayer: true,
+	public: false,
+	// public: true,
+	// password: ''
+};
+
+/**
+ * This prefix will be used when saving game settings in local database.
+ *
+ * @type {string}
+ */
+export const STORAGE_PREFIX = 'MyServer.';
+
+/**
+ * Players with auth token defined below will be logged-in automatically as administrators when enter the server.
+ * Other players have to log in manually using one of defined credentials.
+ *
+ * @type {Array.<AdminInfo>}
+ */
+export const ADMINS = [
+	{
+		auth: '',
+	},
+	{
+		username: '',
+		password: '',
+	},
+];

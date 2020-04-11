@@ -1,0 +1,40 @@
+{
+	"require": {
+		"php": ">=7.3.8",
+		"ext-dom": "*",
+		"ext-zlib": "*",
+		"beberlei/assert": "^3.2",
+		"symfony/css-selector": "^5.0",
+		"symfony/dom-crawler": "^5.0",
+		"symfony/process": "^5.0"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-master",
+		"symfony/var-dumper": "^5.0"
+	},
+	"scripts": {
+		"code:download": [
+			"@php -f bin/doc-downloader.php"
+		],
+		"code:compile": [
+			"@php bin/compile.php merge"
+		],
+		"code:minify": [
+			"@php bin/compile.php minify"
+		],
+		"code:minify-advanced": [
+			"@php bin/compile.php optimize"
+		]
+	},
+	"scripts-descriptions": {
+		"code:download": "Generated HaxBall server stubs from GitHub docs",
+		"code:minify": "https://github.com/google/closure-compiler/wiki/Flags-and-Options"
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"config": {
+		"preferred-install": "dist",
+		"sort-packages": true,
+		"optimize-autoloader": true
+	}
+}
