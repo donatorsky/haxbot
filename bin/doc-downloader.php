@@ -2,7 +2,7 @@
 /** @noinspection ForgottenDebugOutputInspection */
 declare(strict_types=1);
 
-require_once 'vendor/autoload.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php';
 
 use Assert\Assertion;
 use Symfony\Component\DomCrawler\Crawler;
@@ -402,10 +402,10 @@ class TypeObject {
 		return (null !== $this->type) ?
 			sprintf(
 				'%s%s',
-				$this->type,
 				$this->nullable ?
-					'|null' :
-					''
+					'?' :
+					'',
+				$this->type
 			) :
 			'';
 	}

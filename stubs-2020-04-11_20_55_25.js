@@ -105,7 +105,6 @@ class RoomObject {
 	 * room.setDiscProperties(5, {cMask: discProps.cMask | room.CollisionFlags.wall});</pre>
 	 *
 	 * @var {CollisionFlagsObject}
-	 * @const
 	 */
 	get CollisionFlags() {
 	}
@@ -115,7 +114,7 @@ class RoomObject {
 	 * <p>If targetId is null or undefined the message is sent to all players. If targetId is defined the message is sent only to the player with a matching id.</p>
 	 *
 	 * @param {string} message
-	 * @param {number|null} targetId
+	 * @param {?number} targetId
 	 */
 	sendChat(message, targetId = null) {
 		//
@@ -259,7 +258,7 @@ class RoomObject {
 	 *
 	 * @param {number} playerId
 	 *
-	 * @return {PlayerObject|null}
+	 * @return {?PlayerObject}
 	 */
 	getPlayer(playerId) {
 		//
@@ -277,7 +276,7 @@ class RoomObject {
 	/**
 	 * <p>If a game is in progress it returns the current score information. Otherwise it returns null</p>
 	 *
-	 * @return {ScoresObject|null}
+	 * @return {?ScoresObject}
 	 */
 	getScores() {
 		//
@@ -286,7 +285,7 @@ class RoomObject {
 	/**
 	 * <p>Returns the ball's position in the field or null if no game is in progress.</p>
 	 *
-	 * @return {Position|null}
+	 * @return {?Position}
 	 */
 	getBallPosition() {
 		//
@@ -304,7 +303,7 @@ class RoomObject {
 	 * <p>Stops the recording previously started with startRecording and returns the replay file contents as a Uint8Array.</p>
 	 * <p>Returns null if recording was not started or had already been stopped.</p>
 	 *
-	 * @return {Uint8Array|null}
+	 * @return {?Uint8Array}
 	 */
 	stopRecording() {
 		//
@@ -349,10 +348,10 @@ class RoomObject {
 	 * <p>If sound is set to 0 the announcement will produce no sound. If sound is set to 1 the announcement will produce a normal chat sound. If set to 2 it will produce a notification sound.</p>
 	 *
 	 * @param {string} msg
-	 * @param {number|null} targetId
-	 * @param {number|null} color
-	 * @param {string|null} style
-	 * @param {number|null} sound
+	 * @param {?number} targetId
+	 * @param {?number} color
+	 * @param {?string} style
+	 * @param {?number} sound
 	 */
 	sendAnnouncement(msg, targetId = null, color = null, style = null, sound = null) {
 		//
@@ -400,7 +399,7 @@ class RoomObject {
 	 *
 	 * @param {number} discIndex
 	 *
-	 * @return {DiscPropertiesObject|null}
+	 * @return {?DiscPropertiesObject}
 	 */
 	getDiscProperties(discIndex) {
 		//
@@ -672,7 +671,7 @@ class PlayerObject {
 	 * <p>Can be null if the ID validation fails.</p>
 	 * <p>This property is only set in the RoomObject.onPlayerJoin event.</p>
 	 *
-	 * @var {string|null}
+	 * @var {?string}
 	 */
 	get auth() {
 	}
