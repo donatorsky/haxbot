@@ -21,6 +21,11 @@ export class TransformingStorage extends AbstractStorage {
 		this._transformers = transformers;
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {?T}
+	 */
 	get(key) {
 		const item = this._decorated.get(key);
 
@@ -33,6 +38,12 @@ export class TransformingStorage extends AbstractStorage {
 		return item;
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @param {string} key
+	 * @param {T} value
+	 */
 	set(key, value) {
 		for (const transformer of this._transformers) {
 			if (transformer.supports(key, value)) {
@@ -45,10 +56,18 @@ export class TransformingStorage extends AbstractStorage {
 		this._decorated.set(key, value);
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	has(key) {
 		return this._decorated.has(key);
 	}
 
+	/**
+	 * @inheritDoc
+	 *
+	 * @return {!Object.<string, T>}
+	 */
 	all(prefix = undefined) {
 		const items = this._decorated.all(prefix);
 
@@ -65,12 +84,12 @@ export class TransformingStorage extends AbstractStorage {
 }
 
 /**
- * @interface
+ * @abstract
  * @template T
  */
 export class StoreItemTransformer {
 	/**
-	 * @param {T} item
+	 * @param {T|string} item
 	 *
 	 * @return {string}
 	 */
@@ -78,7 +97,7 @@ export class StoreItemTransformer {
 	}
 
 	/**
-	 * @param {string} item
+	 * @param {T|string} item
 	 *
 	 * @return {T}
 	 */

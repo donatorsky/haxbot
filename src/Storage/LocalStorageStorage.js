@@ -29,11 +29,15 @@ export class LocalStorageStorage extends AbstractStorage {
 	 * @inheritDoc
 	 */
 	all(prefix = undefined) {
-		if (undefined === prefix || null === prefix) {
-			return Object.entries(localStorage);
-		}
-
 		const all = {};
+
+		if (undefined === prefix || null === prefix) {
+			for (const [key, value] of Object.entries(localStorage)) {
+				all[key] = value;
+			}
+
+			return all;
+		}
 
 		if (typeof (prefix) === 'string') {
 			for (const [key, value] of Object.entries(localStorage)) {

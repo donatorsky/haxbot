@@ -10,7 +10,7 @@ export class InMemoryStorage extends AbstractStorage {
 		super();
 
 		/**
-		 * @type {Object.<string, T>}
+		 * @type {!Object.<string, T>}
 		 * @private
 		 */
 		this._storage = {};
@@ -45,7 +45,7 @@ export class InMemoryStorage extends AbstractStorage {
 	/**
 	 * @inheritDoc
 	 *
-	 * @return {Object.<string, T>}
+	 * @return {!Object.<string, T>}
 	 */
 	all(prefix = undefined) {
 		if (undefined === prefix || null === prefix) {

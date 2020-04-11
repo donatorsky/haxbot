@@ -278,7 +278,7 @@ test('has -> get', () => {
 	      value = Math.random().toFixed(12);
 
 	const getMock = jest.fn(() => null)
-		      .mockImplementationOnce(() => value),
+		.mockImplementationOnce(() => value),
 	      hasMock = jest.fn(() => false)
 		      .mockImplementationOnce(() => true);
 
@@ -308,7 +308,7 @@ test('get -> set', () => {
 	      value = Math.random().toFixed(12);
 
 	const getMock = jest.fn(() => null)
-		      .mockImplementationOnce(() => value),
+		.mockImplementationOnce(() => value),
 	      setMock = jest.fn(),
 	      hasMock = jest.fn(() => false)
 		      .mockImplementationOnce(() => true);

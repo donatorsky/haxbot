@@ -38,12 +38,27 @@ class Utils {
 }
 
 /**
- * @implements {StoreItemTransformer<PlayerInfo>}
+ * @extends {StoreItemTransformer<PlayerInfo>}
  */
 class PlayerInfoStoreItemTransformer extends StoreItemTransformer {
+
+	/**
+	 * @inheritDoc
+	 */
 	encode(item) {
+		return typeof item === 'string' ?
+			item :
+			JSON.stringify(item);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	decode(item) {
 		try {
-			return PlayerInfo.fromJSON(localStorage.getItem(key));
+			return typeof item === 'string' ?
+				PlayerInfo.fromJSON(item) :
+				item;
 		} catch (e) {
 			console.error('Could not deserialize player:', item);
 
@@ -51,14 +66,11 @@ class PlayerInfoStoreItemTransformer extends StoreItemTransformer {
 		}
 	}
 
-	decode(item) {
-		return JSON.parse(item);
-	}
-
+	/**
+	 * @inheritDoc
+	 */
 	supports(key, item) {
-		console.log('PlayerInfoStoreItemTransformer', key, item);
-
-		return 'string' === typeof item && /player\.[\w-]{43}$/.test(key);
+		return /player\.[\w-]{43}$/.test(key);
 	}
 }
 
@@ -135,7 +147,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 					break;
 				}
 
-				for (const player of Object.values(PLAYERS.all())) {
+				for (const /** @type {PlayerInfo} */ player of Object.values(PLAYERS.all())) {
 					data.push([
 						0,
 						player.goals,
@@ -157,7 +169,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 
 			case "top":
 			case "top10":
-				for (const player of Object.values(PLAYERS.all())) {
+				for (const /** @type {PlayerInfo} */ player of Object.values(PLAYERS.all())) {
 					data.push([
 						0,
 						player.goals,
@@ -211,7 +223,7 @@ Przykład:
  !stats players
  !stats top10
 
-Dostpęne opcje:
+Dostępne opcje:
  players\t\tWyświetla statystyki dla wszystkich graczy obecnych na serwerze.
  top, top10\tWyświetla statystyki dla TOP10 graczy serwera.`, () => !serverLightMode),
 
@@ -256,7 +268,7 @@ Dostpęne opcje:
 			ROOM.sendAnnouncement(arg, sender.id);
 			ROOM.sendAnnouncement("Nie znaleziono odbiorcy", sender.id);
 		} else if (possibleReceivers.length > 1) {
-			ROOM.sendAnnouncement(`Nie można wysłać wiadomości, więcej niż jednen pasujący odbiorca: ${possibleReceivers.join(', ')}`, sender.id);
+			ROOM.sendAnnouncement(`Nie można wysłać wiadomości, więcej niż jeden pasujący odbiorca: ${possibleReceivers.join(', ')}`, sender.id);
 		} else {
 			ROOM.sendAnnouncement(`[WIADOMOŚĆ PRYWATNA] 👤@${sender.name} ✉${arg.substr(possibleReceivers[0].length + 2).trimLeft()}`, receiverId);
 			ROOM.sendAnnouncement(`[WIADOMOŚĆ PRYWATNA] ✉${arg.substr(possibleReceivers[0].length + 2).trimLeft()} → 👤${possibleReceivers[0]}`, sender.id);
@@ -270,7 +282,7 @@ Dostpęne opcje:
 	 * @param {string|undefined} arg
 	 */(player, arg) => {
 		if (undefined === arg) {
-			ROOM.sendAnnouncement("Podaj nazwę uzytkownika i hasło", player.id);
+			ROOM.sendAnnouncement("Podaj nazwę użytkownika i hasło", player.id);
 
 			return false;
 		}
@@ -278,7 +290,7 @@ Dostpęne opcje:
 		let args = arg.split(/\s+/, 2);
 
 		if (args.length < 2) {
-			ROOM.sendAnnouncement("Podaj nazwę uzytkownika i hasło", player.id);
+			ROOM.sendAnnouncement("Podaj nazwę użytkownika i hasło", player.id);
 
 			return false;
 		}
@@ -287,7 +299,7 @@ Dostpęne opcje:
 			ROOM.setPlayerAdmin(player.id, true);
 			ROOM.sendAnnouncement("Zalogowano!", player.id, 0x00FF00);
 		} else {
-			ROOM.sendAnnouncement("Dnae niepoprawne", player.id, 0xFF0000);
+			ROOM.sendAnnouncement("Dane niepoprawne", player.id, 0xFF0000);
 		}
 
 		return false;
@@ -308,8 +320,6 @@ Dostpęne opcje:
 	new Command("dump", /**
 	 * @param {PlayerObject} player
 	 */(player) => {
-		PLAYERS.flush();
-
 		const data = {
 			players: PLAYERS.all()
 		};
@@ -351,9 +361,9 @@ Dostpęne opcje:
 		if (args.hasOwnProperty("start")) {
 			try {
 				GAME.start(
-					args.hasOwnProperty("mode") ? (args.mode ?? '').toLowerCase() : GAME.mode,
-					args.hasOwnProperty("limit") ? parseInt(args.limit, 10) : GAME.limit,
-					args.hasOwnProperty("teamsize") ? parseInt(args.teamsize, 10) : GAME.teamSize,
+					(args['mode'] ?? GAME.mode).toLowerCase(),
+					parseInt(args['limit'] ?? GAME.limit, 10),
+					parseInt(args['teamsize'] ?? GAME.teamSize, 10),
 				);
 
 				ROOM.sendAnnouncement(`🏆 Rozpoczynam turniej: typ - ${GAME.mode}, limit zwycięstw - ${GAME.limit}, maks. rozmiar drużyny - ${GAME.teamSize}`);
@@ -448,11 +458,11 @@ Dostępne statusy:
 
 // Reszta świata
 const ROOM    = HBInit(ROOM_CONFIG),
-      //ROOM    = {},
-      STORAGE = new ScopedStorage(new TransformingStorage(new CachingStorage(new LocalStorageStorage()), [
+      // ROOM    = {},
+      STORAGE = new ScopedStorage(new CachingStorage(new TransformingStorage(new LocalStorageStorage(), [
 	      new PlayerInfoStoreItemTransformer()
-      ]), STORAGE_PREFIX),
-      PLAYERS = new PlayersManager(ROOM, STORAGE_PREFIX, STORAGE),
+      ])), STORAGE_PREFIX),
+      PLAYERS = new PlayersManager(ROOM, STORAGE),
       GAME    = new GameManager(ROOM, PLAYERS);
 
 const KICKABLE_AND_SCORABLE_BALL_MASK = ROOM.CollisionFlags.ball | ROOM.CollisionFlags.kick | ROOM.CollisionFlags.score,
@@ -567,21 +577,6 @@ ROOM.onPlayerBallKick = function (player) {
 };
 
 /**
- * @param {PlayerObject} player
- */
-ROOM.onPlayerActivity = function (player) {
-	// console.log(player, ROOM.getBallPosition());
-};
-
-/**
- * @param {PlayerObject} changedPlayer
- * @param {PlayerObject} byPlayer
- */
-ROOM.onPlayerTeamChange = function (changedPlayer, byPlayer) {
-	//
-};
-
-/**
  * @param {TeamID} team
  */
 ROOM.onTeamGoal = function (team) {
@@ -593,27 +588,30 @@ ROOM.onTeamGoal = function (team) {
 	      scores                  = ROOM.getScores();
 
 	if (lastPlayerContactedBall.length > 0) {
-		const shooter = PLAYERS.getActivePlayerObject(lastPlayerContactedBall[0].playerId);
+		const shooter     = PLAYERS.getActivePlayerObject(lastPlayerContactedBall[0].playerId),
+		      shooterInfo = PLAYERS.get(lastPlayerContactedBall[0].playerId);
 		let contents;
 
 		if (null !== shooter) {
 			if (shooter.team === team) {
-				PLAYERS.get(lastPlayerContactedBall[0].playerId).goals += 1;
+				shooterInfo.goals = shooterInfo.goals + 1;
 
 				contents = `⚽ [${getTime(scores.time)}] Gol strzelony przez ${shooter.name}!`;
 			} else {
-				PLAYERS.get(lastPlayerContactedBall[0].playerId).ownGoals += 1;
+				shooterInfo.ownGoals = shooterInfo.ownGoals + 1;
 
 				contents = `😂 [${getTime(scores.time)}] Samobój zawodnika ${shooter.name}!`;
 			}
 		} else {
-			contents = `⚽ [${getTime(scores.time)}] Gol strzelony przez ${PLAYERS.get(lastPlayerContactedBall[0].playerId).name}!`;
+			contents = `⚽ [${getTime(scores.time)}] Gol strzelony przez ${shooterInfo.name}!`;
 		}
 
 		if (2 === lastPlayerContactedBall.length) {
-			PLAYERS.get(lastPlayerContactedBall[1].playerId).assists += 1;
+			const assistPlayerInfo = PLAYERS.get(lastPlayerContactedBall[1].playerId);
 
-			contents += ` Asysta ${PLAYERS.get(lastPlayerContactedBall[1].playerId).name}.`;
+			assistPlayerInfo.assists = assistPlayerInfo.assists + 1;
+
+			contents += ` Asysta ${assistPlayerInfo.name}.`;
 		}
 
 		contents += TeamID.RedTeam === team ? " 🔴" : " 🔵";
@@ -646,9 +644,9 @@ ROOM.onGameTick = function () {
 	 * @type {?PlayerObject}
 	 */
 	let closestPlayer = null;
-	let playerDiscProperties             = null,
-	    playerDiscToBallDistance         = 0,
-	    playerDiscClosestoToBallDistance = Infinity;
+	let playerDiscProperties            = null,
+	    playerDiscToBallDistance        = 0,
+	    playerDiscClosestToBallDistance = Infinity;
 
 	for (const player of ROOM.getPlayerList()) {
 		if (TeamID.Spectators === player.team) {
@@ -658,13 +656,13 @@ ROOM.onGameTick = function () {
 		playerDiscProperties = ROOM.getPlayerDiscProperties(player.id);
 		playerDiscToBallDistance = calculateDistance(player.position, ballDiscProperties) - playerDiscProperties.radius - ballDiscProperties.radius;
 
-		if (playerDiscToBallDistance < playerDiscClosestoToBallDistance) {
-			playerDiscClosestoToBallDistance = playerDiscToBallDistance;
+		if (playerDiscToBallDistance < playerDiscClosestToBallDistance) {
+			playerDiscClosestToBallDistance = playerDiscToBallDistance;
 			closestPlayer = player;
 		}
 	}
 
-	if (null !== closestPlayer && playerDiscClosestoToBallDistance <= TOUCHED_BALL_THRESHOLD) {
+	if (null !== closestPlayer && playerDiscClosestToBallDistance <= TOUCHED_BALL_THRESHOLD) {
 		GAME.registerBallTouch(closestPlayer);
 	}
 };

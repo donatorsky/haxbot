@@ -45,7 +45,7 @@ export class ScopedStorage extends AbstractStorage {
 	/**
 	 * @inheritDoc
 	 *
-	 * @return {Object.<string, T>}
+	 * @return {!Object.<string, T>}
 	 */
 	all(prefix = undefined) {
 		if (null === prefix) {

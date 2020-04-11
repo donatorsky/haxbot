@@ -403,54 +403,92 @@ export class GameManager {
 	}
 }
 
-/**
- * @property {string} _goalBy
- * @property {?string} _assistBy
- * @property {number} _scoredAt
- * @property {TeamID} _byTeam
- */
 export class GoalInfo {
 
 	constructor(goalBy, assistBy, scoredAt, byTeam) {
+		/**
+		 * @type {string}
+		 * @private
+		 */
 		this._goalBy = goalBy;
+
+		/**
+		 * @type {?string}
+		 * @private
+		 */
 		this._assistBy = assistBy;
+
+		/**
+		 * @type {number}
+		 * @private
+		 */
 		this._scoredAt = scoredAt;
+
+		/**
+		 * @type {TeamID}
+		 * @private
+		 */
 		this._byTeam = byTeam;
 	}
 
+	/**
+	 * @return {string}
+	 */
 	get goalBy() {
 		return this._goalBy;
 	}
 
+	/**
+	 * @return {?string}
+	 */
 	get assistBy() {
 		return this._assistBy;
 	}
 
+	/**
+	 * @return {number}
+	 */
 	get scoredAt() {
 		return this._scoredAt;
 	}
 
+	/**
+	 * @return {TeamID}
+	 */
 	get byTeam() {
 		return this._byTeam;
 	}
 }
 
-/**
- * @property {number} _touchedAt
- * @property {string} _auth
- */
 class BallTouchInfo {
-
-	get touchedAt() {
-		return this._touchedAt;
-	}
-
+	/**
+	 * @return {string}
+	 */
 	get playerId() {
 		return this._playerId;
 	}
 
+	/**
+	 * @return {number}
+	 */
+	get touchedAt() {
+		return this._touchedAt;
+	}
+
+	/**
+	 * @param {string} playerId
+	 */
 	constructor(playerId) {
+		/**
+		 * @type {string}
+		 * @private
+		 */
 		this._playerId = playerId;
+
+		/**
+		 * @type {number}
+		 * @private
+		 */
 		this._touchedAt = Date.now();
 	}
 }

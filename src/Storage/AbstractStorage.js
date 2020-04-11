@@ -41,7 +41,7 @@ export class AbstractStorage {
 	 *                                              `string` prefix should match the beginning of store keys.
 	 *                                              `RegExp` prefix should match whole storage keys' value.
 	 *
-	 * @return {Object.<string, T>}
+	 * @return {!Object.<string, T>}
 	 */
 	all(prefix = undefined) {
 		throw new Error('Method all() not implemented');

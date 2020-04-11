@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 /**
- * @implements {StoreItemTransformer<string>}
+ * @extends {StoreItemTransformer<string>}
  */
 class FooStoreItemTransformer extends StoreItemTransformer {
 

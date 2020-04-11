@@ -65,7 +65,7 @@ describe('LocalStorageStorage.all', () => {
 	test('all items are returned when no prefix is provided', () => {
 		const storage = new LocalStorageStorage();
 
-		expect(storage.all().map(item => item[0])).toStrictEqual(['getItem', 'setItem', 'hasOwnProperty']);
+		expect(Object.keys(storage.all())).toStrictEqual(['getItem', 'setItem', 'hasOwnProperty']);
 	});
 
 	test('all matching items are returned when string prefix is provided', () => {

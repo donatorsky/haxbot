@@ -5,11 +5,11 @@ import {Command} from "./Command";
 export class CommandsStore {
 
 	/**
-	 * @param {Array.<Command>} commands
+	 * @param {!Array.<Command>} commands
 	 */
 	constructor(commands = []) {
 		/**
-		 * @type {Object.<string, Command>}
+		 * @type {!Object.<string, Command>}
 		 * @private
 		 */
 		this._store = {};

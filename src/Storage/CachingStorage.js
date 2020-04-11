@@ -12,6 +12,11 @@ export class CachingStorage extends AbstractStorage {
 		super();
 
 		this._decorated = decorated;
+
+		/**
+		 * @type {Object.<string, T>}
+		 * @private
+		 */
 		this._storage = {};
 	}
 
@@ -62,13 +67,17 @@ export class CachingStorage extends AbstractStorage {
 	/**
 	 * @inheritDoc
 	 *
-	 * @return {Object.<string, T>}
+	 * @return {!Object.<string, T>}
 	 */
 	all(prefix = undefined) {
 		const all = this._decorated.all(prefix);
 
 		for (const [key, value] of Object.entries(all)) {
-			this._storage[key] = value;
+			if (this._storage.hasOwnProperty(key)) {
+				all[key] = this._storage[key];
+			} else {
+				this._storage[key] = value;
+			}
 		}
 
 		return all;

@@ -1,16 +1,8 @@
 'use strict';
 
 import {AbstractStorage} from "../Storage/AbstractStorage";
-import {InMemoryStorage} from "../Storage/InMemoryStorage";
 import {ScopedStorage} from "../Storage/ScopedStorage";
 
-/**
- * @property {RoomObject} _roomObject
- * @property {string} _storagePrefix
- * @property {Object.<string, PlayerInfo>} _store
- * @property {Object.<number, string>} _idToAuthMap
- * @property {Array.<AdminInfo>} _admins
- */
 export class PlayersManager {
 
 	setAdmins(admins) {
@@ -27,46 +19,28 @@ export class PlayersManager {
 
 	/**
 	 * @param {RoomObject} roomObject
-	 * @param {string} storagePrefix
 	 * @param {AbstractStorage} storage
 	 */
-	constructor(roomObject, storagePrefix, storage) {
+	constructor(roomObject, storage) {
 		this._roomObject = roomObject;
-		this._storagePrefix = storagePrefix;
+
+		/**
+		 * @type {ScopedStorage<PlayerInfo>}
+		 * @private
+		 */
 		this._storage = new ScopedStorage(storage, 'player.');
 
 		/**
-		 * @type {InMemoryStorage<PlayerInfo>}
+		 * @type {!Object.<number, string>}
 		 * @private
 		 */
-		this._storage2 = new InMemoryStorage();
-
-		this._store = {};
 		this._idToAuthMap = {};
+
+		/**
+		 * @type {Array.<AdminInfo>}
+		 * @private
+		 */
 		this._admins = [];
-
-		const storeItemPrefix = `${this._storagePrefix}player.`;
-		let playerInfo;
-
-		for (const [key, player] of Object.entries(this._storage.all())) {
-			console.log([key, player]);
-		}
-
-		for (const key of Object.keys(localStorage)) {
-			if (key.startsWith(storeItemPrefix)) {
-				try {
-					playerInfo = PlayerInfo.fromJSON(localStorage.getItem(key));
-
-					playerInfo.afk = false;
-					playerInfo.connected = false;
-
-					this._store[key.substr(storeItemPrefix.length)] = playerInfo;
-					this._storage2.set(key.substr(storeItemPrefix.length), playerInfo);
-				} catch (e) {
-					console.error('Could not deserialize player: ', key, localStorage.getItem(key));
-				}
-			}
-		}
 	}
 
 	/**
@@ -79,19 +53,25 @@ export class PlayersManager {
 
 		this._idToAuthMap[player.id] = player.auth;
 
-		if (!this.has(player.id)) {
-			this._store[player.auth] = new PlayerInfo();
-			this._storage2.set(player.auth, new PlayerInfo());
+		/**
+		 * @type {PlayerInfo}
+		 */
+		let playerObject;
+
+		if (this.has(player.id)) {
+			playerObject = this._storage.get(player.auth);
+		} else {
+			playerObject = new PlayerInfo();
+
+			playerObject.auth = player.auth;
 		}
 
-		this._store[player.auth].name = player.name;
-		this._store[player.auth].connected = true;
-		this._store[player.auth].loggedInAt = Date.now();
-		this._storage2.get(player.auth).name = player.name;
-		this._storage2.get(player.auth).connected = true;
-		this._storage2.get(player.auth).loggedInAt = Date.now();
+		playerObject.name = player.name;
+		playerObject.connected = true;
+		playerObject.afk = false;
+		playerObject.loggedInAt = Date.now();
 
-		localStorage.setItem(`${this._storagePrefix}player.${player.auth}`, JSON.stringify(this._store[player.auth]));
+		this._storage.set(player.auth, playerObject);
 	}
 
 	/**
@@ -101,7 +81,7 @@ export class PlayersManager {
 	 */
 	has(player) {
 		try {
-			return this._store.hasOwnProperty(this.getPlayerAuth(player));
+			return this._storage.has(this.getPlayerAuth(player));
 		} catch (e) {
 			return false;
 		}
@@ -114,23 +94,23 @@ export class PlayersManager {
 	 */
 	get(player) {
 		try {
-			return this._store[this.getPlayerAuth(player)];
+			return this._storage.get(this.getPlayerAuth(player));
 		} catch (e) {
 			return null;
 		}
 	}
 
 	/**
-	 * @return {Object.<string, PlayerInfo>}
+	 * @return {!Object.<string, !PlayerInfo>}
 	 */
 	all() {
-		return this._store;
+		return this._storage.all();
 	}
 
 	/**
 	 * @param {string|number|PlayerObject} player
 	 *
-	 * @return {PlayerObject|null}
+	 * @return {?PlayerObject}
 	 */
 	getActivePlayerObject(player) {
 		try {
@@ -153,17 +133,18 @@ export class PlayersManager {
 	 */
 	disconnect(player) {
 		try {
-			const auth = this.getPlayerAuth(player);
+			const playerObject = this._storage.get(this.getPlayerAuth(player));
 
 			// Update player's times
-			const timeSpent = Date.now() - this._store[auth].loggedInAt;
-			this._store[auth].totalTimeOnServer += timeSpent;
+			const timeSpent = Date.now() - playerObject.loggedInAt;
+			playerObject.totalTimeOnServer = playerObject.totalTimeOnServer + timeSpent;
 
 			// Mark player as disconnected
-			this._store[auth].connected = false;
-			this._store[auth].loggedInAt = null;
+			playerObject.connected = false;
+			playerObject.loggedInAt = null;
 
-			localStorage.setItem(`${this._storagePrefix}player.${auth}`, JSON.stringify(this._store[auth]));
+			// Save changes
+			this._storage.set(this.getPlayerAuth(player), playerObject);
 
 			// Remove player mapping
 			delete this._idToAuthMap[player.id];
@@ -173,8 +154,8 @@ export class PlayersManager {
 	}
 
 	flush() {
-		for (const [auth, player] of Object.entries(this._store)) {
-			localStorage.setItem(`${this._storagePrefix}player.${auth}`, JSON.stringify(player));
+		for (const /** @type {PlayerInfo} */ player of Object.values(this._storage.all())) {
+			this._storage.set(player.auth, player);
 		}
 	}
 
@@ -184,7 +165,7 @@ export class PlayersManager {
 	 * @return {boolean}
 	 */
 	isConnected(player) {
-		return this._store[this.getPlayerAuth(player)].connected;
+		return this._storage.get(this.getPlayerAuth(player)).connected;
 	}
 
 	/**
@@ -193,7 +174,7 @@ export class PlayersManager {
 	 * @return {boolean}
 	 */
 	isAfk(player) {
-		return this._store[this.getPlayerAuth(player)].afk;
+		return this._storage.get(this.getPlayerAuth(player)).afk;
 	}
 
 	/**
@@ -202,7 +183,7 @@ export class PlayersManager {
 	 * @return {number}
 	 */
 	getTotalTimeOnServer(player) {
-		return this._store[this.getPlayerAuth(player)].totalTimeOnServer / 1000 + this.getTodayTimeOnServer(player);
+		return this._storage.get(this.getPlayerAuth(player)).totalTimeOnServer / 1000 + this.getTodayTimeOnServer(player);
 	}
 
 	/**
@@ -214,7 +195,7 @@ export class PlayersManager {
 		const playerId = this.getPlayerAuth(player);
 
 		return this.isConnected(playerId) ?
-			(Date.now() - this._store[playerId].loggedInAt) / 1000 :
+			(Date.now() - this._storage.get(playerId).loggedInAt) / 1000 :
 			0;
 	}
 
@@ -228,7 +209,7 @@ export class PlayersManager {
 	getPlayerAuth(player) {
 		const originalPlayer = player;
 
-		if ("string" === typeof player && this._store.hasOwnProperty(player)) {
+		if ("string" === typeof player && this._storage.has(player)) {
 			return player;
 		}
 
@@ -310,6 +291,9 @@ export class PlayerInfo {
 		this._assists = 0;
 	}
 
+	/**
+	 * @return {string}
+	 */
 	get auth() {
 		return this._auth;
 	}
@@ -318,6 +302,9 @@ export class PlayerInfo {
 		this._auth = value;
 	}
 
+	/**
+	 * @return {boolean}
+	 */
 	get connected() {
 		return this._connected;
 	}
@@ -326,6 +313,9 @@ export class PlayerInfo {
 		this._connected = value;
 	}
 
+	/**
+	 * @return {boolean}
+	 */
 	get afk() {
 		return this._afk;
 	}
@@ -334,6 +324,9 @@ export class PlayerInfo {
 		this._afk = value;
 	}
 
+	/**
+	 * @return {?number}
+	 */
 	get loggedInAt() {
 		return this._loggedInAt;
 	}
@@ -342,6 +335,9 @@ export class PlayerInfo {
 		this._loggedInAt = value;
 	}
 
+	/**
+	 * @return {number}
+	 */
 	get totalTimeOnServer() {
 		return this._totalTimeOnServer;
 	}
@@ -350,6 +346,9 @@ export class PlayerInfo {
 		this._totalTimeOnServer = value;
 	}
 
+	/**
+	 * @return {string}
+	 */
 	get name() {
 		return this._name;
 	}
@@ -358,6 +357,9 @@ export class PlayerInfo {
 		this._name = value;
 	}
 
+	/**
+	 * @return {number}
+	 */
 	get goals() {
 		return this._goals;
 	}
@@ -366,6 +368,9 @@ export class PlayerInfo {
 		this._goals = value;
 	}
 
+	/**
+	 * @return {number}
+	 */
 	get ownGoals() {
 		return this._ownGoals;
 	}
@@ -374,6 +379,9 @@ export class PlayerInfo {
 		this._ownGoals = value;
 	}
 
+	/**
+	 * @return {number}
+	 */
 	get assists() {
 		return this._assists;
 	}
@@ -388,29 +396,20 @@ export class PlayerInfo {
 	 * @return {PlayerInfo}
 	 */
 	static fromJSON(serialized) {
-		const parsed = JSON.parse(serialized),
-		      player = new PlayerInfo();
-
-		for (const key in parsed) {
-			if (parsed.hasOwnProperty(key)) {
-				player[key] = parsed[key];
-			}
-		}
-
-		return player;
+		return Object.assign(new PlayerInfo(), JSON.parse(serialized));
 	}
 
 	toJSON() {
 		return {
-			auth: this._auth,
+			name: this._name,
 			connected: this._connected,
 			afk: this._afk,
 			loggedInAt: this._loggedInAt,
 			totalTimeOnServer: this._totalTimeOnServer,
-			name: this._name,
 			goals: this._goals,
 			ownGoals: this._ownGoals,
 			assists: this._assists,
+			auth: this._auth,
 		};
 	}
 }
@@ -437,6 +436,9 @@ export class AdminInfo {
 		this._auth = undefined;
 	}
 
+	/**
+	 * @return {string|undefined}
+	 */
 	get password() {
 		return this._password;
 	}
@@ -445,6 +447,9 @@ export class AdminInfo {
 		this._password = value;
 	}
 
+	/**
+	 * @return {string|undefined}
+	 */
 	get username() {
 		return this._username;
 	}
@@ -453,6 +458,9 @@ export class AdminInfo {
 		this._username = value;
 	}
 
+	/**
+	 * @return {string|undefined}
+	 */
 	get auth() {
 		return this._auth;
 	}

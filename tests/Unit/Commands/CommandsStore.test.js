@@ -11,7 +11,7 @@ beforeEach(() => {
 
 test('CommandsStore can be constructed without commands', () => {
 	const commandsStore = new CommandsStore();
-	
+
 	expect(commandsStore.getCommandsNames(playerDummy)).toHaveLength(0);
 });
 
@@ -27,19 +27,19 @@ test('Commands can be added to store', () => {
 			isVisible: () => true
 		};
 	});
-	
+
 	const commandsStore = new CommandsStore();
-	
+
 	expect(commandsStore.getCommandsNames(playerDummy)).toHaveLength(0);
 	expect(commandsStore.has('lorem')).toBe(false);
 	expect(commandsStore.has('ipsum')).toBe(false);
-	
+
 	const command1 = new Command(),
 	      command2 = new Command();
-	
+
 	commandsStore.add(command1);
 	commandsStore.add(command2);
-	
+
 	assertCommandsNamesAre(commandsStore.getCommandsNames(playerDummy), ['lorem', 'ipsum']);
 	assertCommandStoreHasCommand(commandsStore, 'lorem', command1);
 	assertCommandStoreHasCommand(commandsStore, 'ipsum', command2);
@@ -62,13 +62,13 @@ test('CommandsStore can be constructed with Commands', () => {
 			isVisible: () => true
 		};
 	});
-	
+
 	const command1 = new Command(),
 	      command2 = new Command(),
 	      command3 = new Command();
-	
+
 	const commandsStore = new CommandsStore([command1, command2, command3]);
-	
+
 	assertCommandsNamesAre(commandsStore.getCommandsNames(playerDummy), ['foo', 'bar', 'baz']);
 	assertCommandStoreHasCommand(commandsStore, 'foo', command1);
 	assertCommandStoreHasCommand(commandsStore, 'bar', command2);
@@ -92,13 +92,13 @@ test('CommandsStore does not list not visible Commands', () => {
 			isVisible: () => true
 		};
 	});
-	
+
 	const command1 = new Command(),
 	      command2 = new Command(),
 	      command3 = new Command();
-	
+
 	const commandsStore = new CommandsStore([command1, command2, command3]);
-	
+
 	assertCommandsNamesAre(commandsStore.getCommandsNames(playerDummy), ['foo', 'baz']);
 	assertCommandStoreHasCommand(commandsStore, 'foo', command1);
 	assertCommandStoreHasCommand(commandsStore, 'bar', command2);
@@ -117,17 +117,17 @@ test('Commands names are case-insensitive, but can be overridden', () => {
 			isVisible: () => true
 		};
 	});
-	
+
 	const command1 = new Command(),
 	      command2 = new Command();
-	
+
 	const commandsStore = new CommandsStore([command1]);
-	
+
 	assertCommandsNamesAre(commandsStore.getCommandsNames(playerDummy), ['foo']);
 	assertCommandStoreHasCommand(commandsStore, 'foo', command1);
-	
+
 	commandsStore.add(command2);
-	
+
 	assertCommandsNamesAre(commandsStore.getCommandsNames(playerDummy), ['foo']);
 	assertCommandStoreHasCommand(commandsStore, 'foo', command2);
 });
@@ -135,11 +135,11 @@ test('Commands names are case-insensitive, but can be overridden', () => {
 describe('CommandsStore.execute tests', () => {
 	test('CommandsStore skips execution of non-existent Command', () => {
 		const commandsStore = new CommandsStore();
-		
+
 		expect(commandsStore.has('foo')).toBe(false);
 		expect(commandsStore.execute('foo', playerDummy, undefined, '')).toBe(true);
 	});
-	
+
 	test('CommandsStore skips execution of not visible Command', () => {
 		Command.mockImplementationOnce(() => {
 			return {
@@ -148,13 +148,13 @@ describe('CommandsStore.execute tests', () => {
 				call: () => null
 			};
 		});
-		
+
 		const commandsStore = new CommandsStore([new Command]);
-		
+
 		expect(commandsStore.has('foo')).toBe(true);
 		expect(commandsStore.execute('foo', playerDummy, undefined, '')).toBe(true);
 	});
-	
+
 	test.each([true, false])('CommandsStore executes visible Command, which returns %p', (expected) => {
 		Command.mockImplementationOnce(() => {
 			return {
@@ -164,14 +164,14 @@ describe('CommandsStore.execute tests', () => {
 					expect(player).toBe(playerDummy);
 					expect(arg).toBe('lorem');
 					expect(message).toBe('ipsum');
-					
+
 					return expected;
 				}
 			};
 		});
-		
+
 		const commandsStore = new CommandsStore([new Command]);
-		
+
 		expect(commandsStore.has('foo')).toBe(true);
 		expect(commandsStore.execute('foo', playerDummy, 'lorem', 'ipsum')).toBe(expected);
 	});
