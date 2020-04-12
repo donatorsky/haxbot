@@ -1,5 +1,5 @@
-import {InMemoryStorage} from "../../../src/Storage/InMemoryStorage";
 import {AbstractStorage} from "../../../src/Storage/AbstractStorage";
+import {InMemoryStorage} from "../../../src/Storage/InMemoryStorage";
 
 test('InMemoryStorage can be constructed', () => {
 	const storage = new InMemoryStorage();
@@ -38,7 +38,7 @@ describe('InMemoryStorage.all', () => {
 
 		expect(storage.all()).toStrictEqual({
 			item: 1,
-			prefixItem: 2
+			prefixItem: 2,
 		});
 	});
 
@@ -49,7 +49,7 @@ describe('InMemoryStorage.all', () => {
 		storage.set('prefixItem', 2);
 
 		expect(storage.all('prefix')).toStrictEqual({
-			prefixItem: 2
+			prefixItem: 2,
 		});
 	});
 
@@ -60,12 +60,12 @@ describe('InMemoryStorage.all', () => {
 		storage.set('prefixItem', 2);
 
 		expect(storage.all(/^prefix/)).toStrictEqual({
-			prefixItem: 2
+			prefixItem: 2,
 		});
 
 		expect(storage.all(/item/i)).toStrictEqual({
 			item: 1,
-			prefixItem: 2
+			prefixItem: 2,
 		});
 	});
 });

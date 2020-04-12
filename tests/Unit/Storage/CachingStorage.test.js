@@ -1,5 +1,5 @@
-import {CachingStorage} from "../../../src/Storage/CachingStorage";
 import {AbstractStorage} from "../../../src/Storage/AbstractStorage";
+import {CachingStorage}  from "../../../src/Storage/CachingStorage";
 
 jest.mock("../../../src/Storage/AbstractStorage");
 
@@ -24,7 +24,7 @@ describe('CachingStore.get', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				get: getMock
+				get: getMock,
 			};
 		});
 
@@ -46,7 +46,7 @@ describe('CachingStore.get', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				get: getMock
+				get: getMock,
 			};
 		});
 
@@ -69,7 +69,7 @@ test('set is called each time', () => {
 
 	AbstractStorage.mockImplementationOnce(() => {
 		return {
-			set: setMock
+			set: setMock,
 		};
 	});
 
@@ -97,7 +97,7 @@ describe('CachingStorage.has', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				has: hasMock
+				has: hasMock,
 			};
 		});
 
@@ -119,7 +119,7 @@ describe('CachingStorage.has', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				has: hasMock
+				has: hasMock,
 			};
 		});
 
@@ -145,7 +145,7 @@ describe('CachingStorage.all', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -169,19 +169,19 @@ describe('CachingStorage.all', () => {
 		const allMock = jest.fn()
 			.mockImplementationOnce(() => {
 				return {
-					prefixItem: 2
+					prefixItem: 2,
 				};
 			})
 			.mockImplementationOnce(() => {
 				return {
 					item: 1,
-					prefixItem: 2
+					prefixItem: 2,
 				};
 			});
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -207,19 +207,19 @@ describe('CachingStorage.all', () => {
 		const allMock = jest.fn()
 			.mockImplementationOnce(() => {
 				return {
-					prefixItem: 2
+					prefixItem: 2,
 				};
 			})
 			.mockImplementationOnce(() => {
 				return {
 					item: 1,
-					prefixItem: 2
+					prefixItem: 2,
 				};
 			});
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -253,7 +253,7 @@ test('has -> set -> get', () => {
 	AbstractStorage.mockImplementationOnce(() => {
 		return {
 			set: setMock,
-			has: hasMock
+			has: hasMock,
 		};
 	});
 
@@ -285,7 +285,7 @@ test('has -> get', () => {
 	AbstractStorage.mockImplementationOnce(() => {
 		return {
 			get: getMock,
-			has: hasMock
+			has: hasMock,
 		};
 	});
 
@@ -317,7 +317,7 @@ test('get -> set', () => {
 		return {
 			get: getMock,
 			set: setMock,
-			has: hasMock
+			has: hasMock,
 		};
 	});
 

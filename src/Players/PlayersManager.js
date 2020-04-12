@@ -1,7 +1,7 @@
 'use strict';
 
 import {AbstractStorage} from "../Storage/AbstractStorage";
-import {ScopedStorage} from "../Storage/ScopedStorage";
+import {ScopedStorage}   from "../Storage/ScopedStorage";
 
 export class PlayersManager {
 

@@ -1,12 +1,25 @@
 'use strict';
 
+/**
+ * @typedef {function(PlayerObject, (string|undefined), string): boolean} CommandLogicHandler
+ */
+let CommandLogicHandler;
+
+/**
+ * @typedef {function(PlayerObject): boolean} CommandVisibilityHandler
+ */
+let CommandVisibilityHandler;
+
+/**
+ * Class representing chat command logic.
+ */
 export class Command {
 
 	/**
-	 * @param {string} name
-	 * @param {Function} handler Otrzyma player (obiekt {PlayerObject}), arg (argument polecenia {string|undefined}) i message (oryginalna wiadomość) jako argumenty. Funkcja powinna zwracać {boolean}.
-	 * @param {?string} description
-	 * @param {boolean|Function} isVisible
+	 * @param {string}                              name
+	 * @param {CommandLogicHandler}                 handler
+	 * @param {?string}                             description
+	 * @param {boolean|CommandVisibilityHandler}    isVisible
 	 */
 	constructor(name, handler, description = null, isVisible = true) {
 		/**
@@ -16,7 +29,7 @@ export class Command {
 		this._name = name;
 
 		/**
-		 * @type {Function}
+		 * @type {CommandLogicHandler}
 		 * @private
 		 */
 		this._handler = handler;
@@ -28,7 +41,7 @@ export class Command {
 		this._description = description;
 
 		/**
-		 * @type {boolean|Function}
+		 * @type {boolean|CommandVisibilityHandler}
 		 * @private
 		 */
 		this._isVisible = isVisible;

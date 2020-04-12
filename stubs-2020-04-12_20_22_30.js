@@ -17,75 +17,19 @@ class Position {
 
 /**
  * <p>RoomConfig is passed to HBInit to configure the room, all values are optional.</p>
+ *
+ * @typedef {{
+ * 		roomName: (string|undefined),
+ * 		playerName: (string|undefined),
+ * 		password: (string|undefined),
+ * 		maxPlayers: (number|undefined),
+ * 		public: (boolean|undefined),
+ * 		geo: ({code: string, lat: number, lon: number}|undefined),
+ * 		token: (string|undefined),
+ * 		noPlayer: (boolean|undefined)
+ * }} RoomConfigObject
  */
-class RoomConfigObject {
-	/**
-	 * <p>The name for the room.</p>
-	 *
-	 * @var {string}
-	 */
-	get roomName() {
-	}
-
-	/**
-	 * <p>The name for the host player.</p>
-	 *
-	 * @var {string}
-	 */
-	get playerName() {
-	}
-
-	/**
-	 * <p>The password for the room (no password if ommited).</p>
-	 *
-	 * @var {string}
-	 */
-	get password() {
-	}
-
-	/**
-	 * <p>Max number of players the room accepts.</p>
-	 *
-	 * @var {number}
-	 */
-	get maxPlayers() {
-	}
-
-	/**
-	 * <p>If true the room will appear in the room list.</p>
-	 *
-	 * @var {boolean}
-	 */
-	get public() {
-	}
-
-	/**
-	 * <p>GeoLocation override for the room.</p>
-	 *
-	 * @var {{code: string, lat: number, lon: number}}
-	 */
-	get geo() {
-	}
-
-	/**
-	 * <p>Can be used to skip the recaptcha by setting it to a token that can be obtained <a href="https://www.haxball.com/headlesstoken" rel="nofollow">here</a></p>
-	 * <p>These tokens will expire after a few minutes.</p>
-	 *
-	 * @var {string}
-	 */
-	get token() {
-	}
-
-	/**
-	 * <p>If set to true the room player list will be empty, the playerName setting will be ignored.</p>
-	 * <p>Default value is false for backwards compatibility reasons but it's recommended to set this to true.</p>
-	 * <p><strong>Warning! events will have null as the byPlayer argument when the event is caused by the host, so make sure to check for null values!</strong></p>
-	 *
-	 * @var {boolean}
-	 */
-	get noPlayer() {
-	}
-}
+let RoomConfigObject;
 
 /**
  * <p>RoomObject is the main interface which lets you control the room and listen to it's events</p>
@@ -107,6 +51,166 @@ class RoomObject {
 	 * @var {CollisionFlagsObject}
 	 */
 	get CollisionFlags() {
+	}
+
+	/**
+	 * <p>Event called when a new player joins the room.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onPlayerJoin(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player leaves the room.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onPlayerLeave(callback) {
+	}
+
+	/**
+	 * <p>Event called when a team wins.</p>
+	 *
+	 * @param {function(ScoresObject)} callback
+	 */
+	set onTeamVictory(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player sends a chat message.</p>
+	 * <p>The event function can return <code>false</code> in order to filter the chat message. This prevents the chat message from reaching other players in the room.</p>
+	 *
+	 * @param {function(PlayerObject, string): boolean} callback
+	 */
+	set onPlayerChat(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player kicks the ball.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onPlayerBallKick(callback) {
+	}
+
+	/**
+	 * <p>Event called when a team scores a goal.</p>
+	 *
+	 * @param {function(TeamID)} callback
+	 */
+	set onTeamGoal(callback) {
+	}
+
+	/**
+	 * <p>Event called when a game starts.</p>
+	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onGameStart(callback) {
+	}
+
+	/**
+	 * <p>Event called when a game stops.</p>
+	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onGameStop(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player's admin rights are changed.</p>
+	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
+	 *
+	 * @param {function(PlayerObject, PlayerObject)} callback
+	 */
+	set onPlayerAdminChange(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player team is changed.</p>
+	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
+	 *
+	 * @param {function(PlayerObject, PlayerObject)} callback
+	 */
+	set onPlayerTeamChange(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.</p>
+	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
+	 *
+	 * @param {function(PlayerObject, string, boolean, PlayerObject)} callback
+	 */
+	set onPlayerKicked(callback) {
+	}
+
+	/**
+	 * <p>Event called once for every game tick (happens 60 times per second). This is useful if you want to monitor the player and ball positions without missing any ticks.</p>
+	 * <p>This event is not called if the game is paused or stopped.</p>
+	 *
+	 * @param {function()} callback
+	 */
+	set onGameTick(callback) {
+	}
+
+	/**
+	 * <p>Event called when the game is paused.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onGamePause(callback) {
+	}
+
+	/**
+	 * <p>Event called when the game is unpaused.</p>
+	 * <p>After this event there's a timer before the game is fully unpaused, to detect when the game has really resumed you can listen for the first onGameTick event after this event is called.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onGameUnpause(callback) {
+	}
+
+	/**
+	 * <p>Event called when the players and ball positions are reset after a goal happens.</p>
+	 *
+	 * @param {function()} callback
+	 */
+	set onPositionsReset(callback) {
+	}
+
+	/**
+	 * <p>Event called when a player gives signs of activity, such as pressing a key. This is useful for detecting inactive players.</p>
+	 *
+	 * @param {function(PlayerObject)} callback
+	 */
+	set onPlayerActivity(callback) {
+	}
+
+	/**
+	 * <p>Event called when the stadium is changed.</p>
+	 *
+	 * @param {function(string, PlayerObject)} callback
+	 */
+	set onStadiumChange(callback) {
+	}
+
+	/**
+	 * <p>Event called when the room link is obtained.</p>
+	 *
+	 * @param {function(string)} callback
+	 */
+	set onRoomLink(callback) {
+	}
+
+	/**
+	 * <p>Event called when the kick rate is set.</p>
+	 *
+	 * @param {function(number, number, number, PlayerObject)} callback
+	 */
+	set onKickRateLimitSet(callback) {
 	}
 
 	/**
@@ -432,193 +536,6 @@ class RoomObject {
 	getDiscCount() {
 		//
 	}
-
-	/**
-	 * <p>Event called when a new player joins the room.</p>
-	 *
-	 * @param {PlayerObject} player
-	 */
-	onPlayerJoin(player) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player leaves the room.</p>
-	 *
-	 * @param {PlayerObject} player
-	 */
-	onPlayerLeave(player) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a team wins.</p>
-	 *
-	 * @param {ScoresObject} scores
-	 */
-	onTeamVictory(scores) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player sends a chat message.</p>
-	 * <p>The event function can return <code>false</code> in order to filter the chat message. This prevents the chat message from reaching other players in the room.</p>
-	 *
-	 * @param {PlayerObject} player
-	 * @param {string} message
-	 *
-	 * @return {boolean}
-	 */
-	onPlayerChat(player, message) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player kicks the ball.</p>
-	 *
-	 * @param {PlayerObject} player
-	 */
-	onPlayerBallKick(player) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a team scores a goal.</p>
-	 *
-	 * @param {TeamID} team
-	 */
-	onTeamGoal(team) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a game starts.</p>
-	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
-	 *
-	 * @param {PlayerObject} byPlayer
-	 */
-	onGameStart(byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a game stops.</p>
-	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
-	 *
-	 * @param {PlayerObject} byPlayer
-	 */
-	onGameStop(byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player's admin rights are changed.</p>
-	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
-	 *
-	 * @param {PlayerObject} changedPlayer
-	 * @param {PlayerObject} byPlayer
-	 */
-	onPlayerAdminChange(changedPlayer, byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player team is changed.</p>
-	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
-	 *
-	 * @param {PlayerObject} changedPlayer
-	 * @param {PlayerObject} byPlayer
-	 */
-	onPlayerTeamChange(changedPlayer, byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player has been kicked from the room. This is always called after the onPlayerLeave event.</p>
-	 * <p><code>byPlayer</code> is the player which caused the event (can be null if the event wasn't caused by a player).</p>
-	 *
-	 * @param {PlayerObject} kickedPlayer
-	 * @param {string} reason
-	 * @param {boolean} ban
-	 * @param {PlayerObject} byPlayer
-	 */
-	onPlayerKicked(kickedPlayer, reason, ban, byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called once for every game tick (happens 60 times per second). This is useful if you want to monitor the player and ball positions without missing any ticks.</p>
-	 * <p>This event is not called if the game is paused or stopped.</p>
-	 */
-	onGameTick() {
-		//
-	}
-
-	/**
-	 * <p>Event called when the game is paused.</p>
-	 *
-	 * @param {PlayerObject} byPlayer
-	 */
-	onGamePause(byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when the game is unpaused.</p>
-	 * <p>After this event there's a timer before the game is fully unpaused, to detect when the game has really resumed you can listen for the first onGameTick event after this event is called.</p>
-	 *
-	 * @param {PlayerObject} byPlayer
-	 */
-	onGameUnpause(byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when the players and ball positions are reset after a goal happens.</p>
-	 */
-	onPositionsReset() {
-		//
-	}
-
-	/**
-	 * <p>Event called when a player gives signs of activity, such as pressing a key. This is useful for detecting inactive players.</p>
-	 *
-	 * @param {PlayerObject} player
-	 */
-	onPlayerActivity(player) {
-		//
-	}
-
-	/**
-	 * <p>Event called when the stadium is changed.</p>
-	 *
-	 * @param {string} newStadiumName
-	 * @param {PlayerObject} byPlayer
-	 */
-	onStadiumChange(newStadiumName, byPlayer) {
-		//
-	}
-
-	/**
-	 * <p>Event called when the room link is obtained.</p>
-	 *
-	 * @param {string} url
-	 */
-	onRoomLink(url) {
-		//
-	}
-
-	/**
-	 * <p>Event called when the kick rate is set.</p>
-	 *
-	 * @param {number} min
-	 * @param {number} rate
-	 * @param {number} burst
-	 * @param {PlayerObject} byPlayer
-	 */
-	onKickRateLimitSet(min, rate, burst, byPlayer) {
-		//
-	}
 }
 
 /**
@@ -742,8 +659,8 @@ class ScoresObject {
  */
 const TeamID = {
 	Spectators: 0,
-	RedTeam:    1,
-	BlueTeam:   2,
+	RedTeam: 1,
+	BlueTeam: 2,
 };
 
 /**
@@ -872,41 +789,30 @@ class DiscPropertiesObject {
  * @enum {number}
  */
 const CollisionFlagsObject = {
-	ball:   1,
-	red:    2,
-	blue:   4,
-	redKO:  8,
+	ball: 1,
+	red: 2,
+	blue: 4,
+	redKO: 8,
 	blueKO: 16,
-	wall:   32,
-	all:    63,
-	kick:   64,
-	score:  128,
-	c0:     268435456,
-	c1:     536870912,
-	c2:     1073741824,
-	c3:     -2147483648,
+	wall: 32,
+	all: 63,
+	kick: 64,
+	score: 128,
+	c0: 268435456,
+	c1: 536870912,
+	c2: 1073741824,
+	c3: -2147483648,
 };
 
 /**
  * @constructor
  *
- * @param {Object}  config              RoomConfig is passed to HBInit to configure the ROOM, all values are optional.
- * @param {string}  config.roomName     The name for the ROOM.
- * @param {string}  config.playerName   The name for the host player.
- * @param {string}  config.password     The password for the ROOM (no password if ommited).
- * @param {number}  config.maxPlayers   The name for the host player.
- * @param {boolean} config.public       If true the ROOM will appear in the ROOM list.
- * @param {Object}  config.geo          GeoLocation override for the ROOM.
- * @param {string}  config.geo.code     GeoLocation country code.
- * @param {number}  config.geo.lat      GeoLocation latitude.
- * @param {number}  config.geo.lon      GeoLocation longitude.
- * @param {string}  config.token        Can be used to skip the recaptcha by setting it to a token that can be obtained <a href="https://www.haxball.com/headlesstoken" >here</a>. These tokens will expire after a few minutes.
- * @param {boolean} config.noPlayer     If set to true the ROOM player list will be empty, the playerName setting will be ignored.
+ * @param {RoomConfigObject} roomConfig
  *
  * @return {RoomObject}
  *
  * @link https://github.com/haxball/haxball-issues/wiki/Headless-Host Documentation
  * @link https://html5.haxball.com/headless                           Headless server host
  */
-var HBInit = function (config) {
+function HBInit(roomConfig) {
 };

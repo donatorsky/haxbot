@@ -1,5 +1,5 @@
+import {AbstractStorage}                           from "../../../src/Storage/AbstractStorage";
 import {StoreItemTransformer, TransformingStorage} from "../../../src/Storage/TransformingStorage";
-import {AbstractStorage} from "../../../src/Storage/AbstractStorage";
 
 jest.mock("../../../src/Storage/AbstractStorage");
 
@@ -34,6 +34,24 @@ class FooStoreItemTransformer extends StoreItemTransformer {
 	}
 }
 
+/**
+ * @extends {StoreItemTransformer<string>}
+ */
+class BazStoreItemTransformer extends StoreItemTransformer {
+
+	encode(item) {
+		return `baz.${item}`;
+	}
+
+	decode(item) {
+		return item.substr(4);
+	}
+
+	supports(key, item) {
+		return 'baz' === key;
+	}
+}
+
 describe('TransformingStorage.constructor', () => {
 	test('TransformingStorage cannot be constructed with empty list of transformers', () => {
 		AbstractStorage.mockImplementationOnce(() => {
@@ -49,10 +67,11 @@ describe('TransformingStorage.constructor', () => {
 		});
 
 		const storage = new TransformingStorage(new AbstractStorage, [
-			new FooStoreItemTransformer()
+			new FooStoreItemTransformer(),
+			new BazStoreItemTransformer(),
 		]);
 
-		expect(storage._transformers).toHaveLength(1);
+		expect(storage._transformers).toHaveLength(2);
 	});
 });
 
@@ -67,7 +86,8 @@ describe('TransformingStorage.get', () => {
 		getMock.mockImplementationOnce(() => 'BAR');
 
 		const storage = new TransformingStorage(new AbstractStorage, [
-			new FooStoreItemTransformer()
+			new FooStoreItemTransformer(),
+			new BazStoreItemTransformer(),
 		]);
 
 		expect(storage.get('bar')).toStrictEqual('BAR');
@@ -86,7 +106,8 @@ describe('TransformingStorage.get', () => {
 		getMock.mockImplementationOnce(() => 'foo');
 
 		const storage = new TransformingStorage(new AbstractStorage, [
-			new FooStoreItemTransformer()
+			new FooStoreItemTransformer(),
+			new BazStoreItemTransformer(),
 		]);
 
 		expect(storage.get('foo')).toStrictEqual('{foo}');
@@ -107,7 +128,8 @@ describe('TransformingStorage.set', () => {
 		setMock.mockImplementationOnce(() => null);
 
 		const storage = new TransformingStorage(new AbstractStorage, [
-			new FooStoreItemTransformer()
+			new FooStoreItemTransformer(),
+			new BazStoreItemTransformer(),
 		]);
 
 		storage.set('bar', 'BAR');
@@ -126,7 +148,8 @@ describe('TransformingStorage.set', () => {
 		setMock.mockImplementationOnce(() => 'foo');
 
 		const storage = new TransformingStorage(new AbstractStorage, [
-			new FooStoreItemTransformer()
+			new FooStoreItemTransformer(),
+			new BazStoreItemTransformer(),
 		]);
 
 		storage.set('foo', 'FOO');
@@ -147,7 +170,8 @@ test('has passes call to the target storage', () => {
 		.mockImplementationOnce(() => false);
 
 	const storage = new TransformingStorage(new AbstractStorage, [
-		new FooStoreItemTransformer()
+		new FooStoreItemTransformer(),
+		new BazStoreItemTransformer(),
 	]);
 
 	expect(storage.has('foo')).toStrictEqual(true);
@@ -173,12 +197,13 @@ test('all decodes only supported items', () => {
 	});
 
 	const storage = new TransformingStorage(new AbstractStorage, [
-		new FooStoreItemTransformer()
+		new FooStoreItemTransformer(),
+		new BazStoreItemTransformer(),
 	]);
 
 	expect(storage.all()).toStrictEqual({
 		foo: "{foo}",
-		bar: "bar"
+		bar: "bar",
 	});
 
 	expect(allMock).toHaveBeenCalledTimes(1);

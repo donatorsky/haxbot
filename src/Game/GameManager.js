@@ -1,13 +1,13 @@
 'use strict';
 
+import {PlayersManager}           from "../Players/PlayersManager";
 import {ASSIST_VALID_FOR, TeamID} from "../Utils/constants";
-import {popNRandomElements} from "../Utils/Utils";
-import {PlayersManager} from "../Players/PlayersManager";
+import {popNRandomElements}       from "../Utils/Utils";
 
 export const GAME_MODES = {
 	BO: 'bo',
 	UT: 'ut',
-	RANDOM: 'random'
+	RANDOM: 'random',
 };
 
 export class GameManager {
@@ -311,7 +311,7 @@ export class GameManager {
 							if (self.teamSize <= 0 && playerList.length > 0) {
 								playerList.forEach(player => self._roomObject.setPlayerTeam(player.id, Math.random() < 0.5 ?
 									TeamID.RedTeam :
-									TeamID.BlueTeam))
+									TeamID.BlueTeam));
 							}
 
 							self._roomObject.startGame();

@@ -1,5 +1,5 @@
-import {ScopedStorage} from "../../../src/Storage/ScopedStorage";
 import {AbstractStorage} from "../../../src/Storage/AbstractStorage";
+import {ScopedStorage}   from "../../../src/Storage/ScopedStorage";
 
 jest.mock("../../../src/Storage/AbstractStorage");
 
@@ -24,7 +24,7 @@ test('null is returned when item does not exist', () => {
 	AbstractStorage.mockImplementationOnce(() => {
 		return {
 			get: getMock,
-			has: hasMock
+			has: hasMock,
 		};
 	});
 
@@ -54,7 +54,7 @@ test('item is successfully stored', () => {
 		return {
 			get: getMock,
 			set: setMock,
-			has: hasMock
+			has: hasMock,
 		};
 	});
 
@@ -83,7 +83,7 @@ describe('ScopedStorage.all', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -100,7 +100,7 @@ describe('ScopedStorage.all', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -118,7 +118,7 @@ describe('ScopedStorage.all', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 
@@ -137,7 +137,7 @@ describe('ScopedStorage.all', () => {
 
 		AbstractStorage.mockImplementationOnce(() => {
 			return {
-				all: allMock
+				all: allMock,
 			};
 		});
 

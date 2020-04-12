@@ -1,5 +1,5 @@
+import {Command}       from "../../../src/Commands/Command";
 import {CommandsStore} from "../../../src/Commands/CommandsStore";
-import {Command} from "../../../src/Commands/Command";
 
 jest.mock("../../../src/Commands/Command");
 
@@ -19,12 +19,12 @@ test('Commands can be added to store', () => {
 	Command.mockImplementationOnce(() => {
 		return {
 			getName: () => 'lorem',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'ipsum',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	});
 
@@ -49,17 +49,17 @@ test('CommandsStore can be constructed with Commands', () => {
 	Command.mockImplementationOnce(() => {
 		return {
 			getName: () => 'foo',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'bar',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'baz',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	});
 
@@ -79,17 +79,17 @@ test('CommandsStore does not list not visible Commands', () => {
 	Command.mockImplementationOnce(() => {
 		return {
 			getName: () => 'foo',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'bar',
-			isVisible: () => false
+			isVisible: () => false,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'baz',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	});
 
@@ -109,12 +109,12 @@ test('Commands names are case-insensitive, but can be overridden', () => {
 	Command.mockImplementationOnce(() => {
 		return {
 			getName: () => 'foo',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	}).mockImplementationOnce(() => {
 		return {
 			getName: () => 'FOO',
-			isVisible: () => true
+			isVisible: () => true,
 		};
 	});
 
@@ -145,7 +145,7 @@ describe('CommandsStore.execute tests', () => {
 			return {
 				getName: () => 'foo',
 				isVisible: () => false,
-				call: () => null
+				call: () => null,
 			};
 		});
 
@@ -166,7 +166,7 @@ describe('CommandsStore.execute tests', () => {
 					expect(message).toBe('ipsum');
 
 					return expected;
-				}
+				},
 			};
 		});
 

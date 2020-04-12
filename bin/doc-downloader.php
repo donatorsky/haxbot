@@ -110,7 +110,7 @@ class ClassObject {
 	private $description;
 
 	/**
-	 * @var array<string, \FieldObject>|\ObjectsStore
+	 * @var array<string, \FieldGetterObject>|\ObjectsStore
 	 */
 	private $fields;
 
@@ -128,14 +128,14 @@ class ClassObject {
 
 		$this->name = $name;
 		$this->description = $description;
-		$this->fields = new ObjectsStore(FieldObject::class);
+		$this->fields = new ObjectsStore(FieldObjectInterface::class);
 		$this->methods = new ObjectsStore(MethodObject::class);
 	}
 
 
 	public function __toString(): string {
 		$body = array_merge(
-			array_map(static function (FieldObject $field): string {
+			array_map(static function (FieldObjectInterface $field): string {
 				return Utils::increaseIndentation((string) $field);
 			}, $this->fields->all()),
 			array_map(static function (MethodObject $method): string {
@@ -167,7 +167,7 @@ CLASS,
 
 
 	/**
-	 * @return \ObjectsStore<string, \FieldObject>
+	 * @return \ObjectsStore<string, \FieldGetterObject>
 	 */
 	public function getFields(): ObjectsStore {
 		return $this->fields;
@@ -182,7 +182,12 @@ CLASS,
 	}
 }
 
-class FieldObject implements StoreItem {
+interface FieldObjectInterface {
+
+	public function __toString(): string;
+}
+
+class FieldGetterObject implements StoreItem, FieldObjectInterface {
 
 	private $name;
 
@@ -214,11 +219,76 @@ class FieldObject implements StoreItem {
 FIELD,
 			Utils::formatDescription($this->description, null !== $this->type && $this->type->hasType() ?
 				[new VarAnnotation($this->type)] :
-				[]),
+				[]
+			),
 			$this->name,
 			("\0" !== $this->value) ?
 				sprintf("\n\treturn %s;", var_export($this->value, true)) :
 				''
+		);
+	}
+
+
+	public function getName(): string {
+		return $this->name;
+	}
+
+
+	public function getType(): TypeObject {
+		return $this->type;
+	}
+
+
+	public function hasType(): bool {
+		return null !== $this->type;
+	}
+}
+
+class FieldSetterObject implements StoreItem, FieldObjectInterface {
+
+	private $name;
+
+	/**
+	 * @var \TypeObject|null
+	 */
+	private $type;
+
+	private $description;
+
+	private $parameterName;
+
+
+	/**
+	 * @param string|\TypeObject|null $type
+	 */
+	public function __construct(string $name, $type, ?string $description = null, $parameterName = 'value') {
+		$this->name = $name;
+		$this->description = $description;
+		$this->parameterName = $parameterName;
+
+		if (null !== $type) {
+			$this->type = $type instanceof TypeObject ?
+				$type :
+				new TypeObject(
+					$type,
+					false !== stripos($description ?? '', 'can be null if')
+				);
+		}
+	}
+
+
+	public function __toString(): string {
+		return sprintf(
+			<<<'FIELD'
+%sset %s(%s) {
+}
+FIELD,
+			Utils::formatDescription($this->description, null !== $this->type && $this->type->hasType() ?
+				[new ParamAnnotation($this->type, $this->parameterName)] :
+				[]
+			),
+			$this->name,
+			$this->parameterName
 		);
 	}
 
@@ -387,9 +457,9 @@ class ParameterObject implements StoreItem {
 
 class TypeObject {
 
-	private $type;
+	protected $type;
 
-	private $nullable;
+	protected $nullable;
 
 
 	public function __construct(string $type, bool $nullable = false) {
@@ -466,6 +536,9 @@ class TypeObject {
 			case '{"code": string, "lat" : float, "lon" : float}':
 				return '{code: string, lat: number, lon: number}';
 
+			case 'function':
+				return 'Function';
+
 			case 'void':
 				return null;
 
@@ -473,6 +546,55 @@ class TypeObject {
 				//dump(debug_backtrace());
 				throw new RuntimeException('Unknown parameter type: ' . $type);
 		}
+	}
+}
+
+class CallbackTypeObject extends TypeObject {
+
+	/**
+	 * @var \TypeObject[]
+	 */
+	protected $parameters = [];
+
+	/**
+	 * @var \TypeObject|null
+	 */
+	private $returnType;
+
+
+	public function __construct(array $parameters, bool $nullable = false, $returnType = 'void') {
+		parent::__construct('function', $nullable);
+
+		foreach ($parameters as $parameter) {
+			if (!preg_match('/^(\w+)(\?)?\s*:\s*(.+?)(?:\s*=\s*(.+))?$/', trim($parameter), $match)) {
+				dump($parameters);
+
+				throw new RuntimeException('Cannot parse parameter data: ' . $parameter);
+			}
+
+			$this->parameters[] = new TypeObject($match[3], '?' === $match[2]);
+		}
+
+		if (null !== $returnType) {
+			$this->returnType = $returnType instanceof TypeObject ?
+				$returnType :
+				new TypeObject($returnType);
+		}
+	}
+
+
+	public function __toString(): string {
+		$definition = sprintf('function(%s)', implode(', ', $this->parameters));
+
+		if (null !== $this->returnType && $this->returnType->hasType()) {
+			$definition .= sprintf(': %s', $this->returnType);
+		}
+
+		if ($this->nullable) {
+			$definition = sprintf('(%s)|null', $definition);
+		}
+
+		return $definition;
 	}
 }
 
@@ -691,8 +813,8 @@ $classes = [
 
 /** @noinspection PhpUnhandledExceptionInspection */
 $positionObject->getFields()
-	->add(new FieldObject('x', 'Int'))
-	->add(new FieldObject('y', 'Int'));
+	->add(new FieldGetterObject('x', 'Int'))
+	->add(new FieldGetterObject('y', 'Int'));
 
 foreach ($crawler->filter('#wiki-body > .markdown-body > h2') as $h2) {
 	$name = trim($h2->textContent);
@@ -741,6 +863,65 @@ COLLISIONFLAGSOBJECT,
 		continue;
 	}
 
+	if ('RoomConfigObject' === $name) {
+		$fields = [];
+
+		foreach ((new Crawler($h2))->nextAll()->filter('h3,h2,hr') as $item) {
+			/**
+			 * @var \DOMNode $item
+			 */
+			if ('h3' !== $item->nodeName) {
+				break;
+			}
+
+			$itemValue = trim($item->textContent);
+
+			// Field
+			if (preg_match('/^(\w+)\s+:\s+(.+)$/', $itemValue, $match)) {
+				$fields[$match[1]] = new TypeObject($match[2]);
+
+				continue;
+			}
+
+			// Method or setter
+			$node = new Crawler($item);
+
+			if (preg_match('/<code>(?:' . preg_quote($itemValue, '/') . ')?\((.*?)\)\s*(?::\s*(.+))?<\/code>/m', $node->nextAll()->eq(0)->html(), $match)) {
+				throw new RuntimeException('RoomConfigObject does not support methods');
+			}
+
+			// Field written as method
+			if (preg_match('/^<code>(\w+)\s+:\s+(.+)<\/code>$/', $node->nextAll()->eq(0)->html(), $match)) {
+				$fields[$match[1]] = new TypeObject($match[2]);
+
+				continue;
+			}
+
+			// Unknown
+			dump('Unknown place: ' . $node->nextAll()->eq(0)->html());
+			//throw new RuntimeException('Unknown place: ' . $node->nextAll()->eq(0)->html());
+		}
+
+		$classes[] = sprintf(
+			<<<'ROOMCONFIGOBJECT'
+%slet RoomConfigObject;
+ROOMCONFIGOBJECT,
+			Utils::formatDescription(Utils::readDescription($h2), [
+				new AnnotationObject(
+					'typedef',
+					empty($fields) ?
+						new TypeObject('Object') :
+						sprintf("{\n * \t\t%s\n * }", implode(",\n * \t\t", array_map(static function (string $k, TypeObject $v): string {
+							return sprintf('%s: (%s|undefined)', $k, $v);
+						}, array_keys($fields), $fields))),
+					'RoomConfigObject'
+				),
+			])
+		);
+
+		continue;
+	}
+
 	/** @noinspection PhpUnhandledExceptionInspection */
 	$classObject = new ClassObject($name, Utils::readDescription($h2));
 
@@ -757,22 +938,32 @@ COLLISIONFLAGSOBJECT,
 		// Field
 		if (preg_match('/^(\w+)\s+:\s+(.+)$/', $itemValue, $match)) {
 			/** @noinspection PhpUnhandledExceptionInspection */
-			$classObject->getFields()->add(new FieldObject($match[1], $match[2], Utils::readDescription($item)));
+			$classObject->getFields()->add(new FieldGetterObject($match[1], $match[2], Utils::readDescription($item)));
 
 			continue;
 		}
 
-		// Method
+		// Method or setter
 		$node = new Crawler($item);
 
 		if (preg_match('/<code>(?:' . preg_quote($itemValue, '/') . ')?\((.*?)\)\s*(?::\s*(.+))?<\/code>/m', $node->nextAll()->eq(0)->html(), $match)) {
-			/** @noinspection PhpUnhandledExceptionInspection */
-			$classObject->getMethods()->add(new MethodObject(
-				$itemValue,
-				array_filter(preg_split('/\s*,\s*/', htmlspecialchars_decode($match[1]))),
-				Utils::readDescription($node->nextAll()->getNode(0)),
-				$match[2] ?? null
-			));
+			if (0 === stripos($itemValue, 'on')) {
+				/** @noinspection PhpUnhandledExceptionInspection */
+				$classObject->getFields()->add(new FieldSetterObject(
+					$itemValue,
+					new CallbackTypeObject(array_filter(preg_split('/\s*,\s*/', htmlspecialchars_decode($match[1]))), false, $match[2] ?? null),
+					Utils::readDescription($node->nextAll()->getNode(0)),
+					'callback'
+				));
+			} else {
+				/** @noinspection PhpUnhandledExceptionInspection */
+				$classObject->getMethods()->add(new MethodObject(
+					$itemValue,
+					array_filter(preg_split('/\s*,\s*/', htmlspecialchars_decode($match[1]))),
+					Utils::readDescription($node->nextAll()->getNode(0)),
+					$match[2] ?? null
+				));
+			}
 
 			continue;
 		}
@@ -780,7 +971,7 @@ COLLISIONFLAGSOBJECT,
 		// Field written as method
 		if (preg_match('/^<code>(\w+)\s+:\s+(.+)<\/code>$/', $node->nextAll()->eq(0)->html(), $match)) {
 			/** @noinspection PhpUnhandledExceptionInspection */
-			$classObject->getFields()->add(new FieldObject($match[1], $match[2], Utils::readDescription($item)));
+			$classObject->getFields()->add(new FieldGetterObject($match[1], $match[2], Utils::readDescription($item)));
 
 			continue;
 		}
@@ -793,19 +984,19 @@ COLLISIONFLAGSOBJECT,
 	//if ('CollisionFlagsObject' === $name) {
 	//	/** @noinspection PhpUnhandledExceptionInspection */
 	//	$classObject->getFields()
-	//		->add(new FieldObject('ball', 'Int', null, 1))
-	//		->add(new FieldObject('red', 'Int', null, 2))
-	//		->add(new FieldObject('blue', 'Int', null, 4))
-	//		->add(new FieldObject('redKO', 'Int', null, 8))
-	//		->add(new FieldObject('blueKO', 'Int', null, 16))
-	//		->add(new FieldObject('wall', 'Int', null, 32))
-	//		->add(new FieldObject('all', 'Int', null, 63))
-	//		->add(new FieldObject('kick', 'Int', null, 64))
-	//		->add(new FieldObject('score', 'Int', null, 128))
-	//		->add(new FieldObject('c0', 'Int', null, 268435456))
-	//		->add(new FieldObject('c1', 'Int', null, 536870912))
-	//		->add(new FieldObject('c2', 'Int', null, 1073741824))
-	//		->add(new FieldObject('c3', 'Int', null, -2147483648));
+	//		->add(new FieldGetterObject('ball', 'Int', null, 1))
+	//		->add(new FieldGetterObject('red', 'Int', null, 2))
+	//		->add(new FieldGetterObject('blue', 'Int', null, 4))
+	//		->add(new FieldGetterObject('redKO', 'Int', null, 8))
+	//		->add(new FieldGetterObject('blueKO', 'Int', null, 16))
+	//		->add(new FieldGetterObject('wall', 'Int', null, 32))
+	//		->add(new FieldGetterObject('all', 'Int', null, 63))
+	//		->add(new FieldGetterObject('kick', 'Int', null, 64))
+	//		->add(new FieldGetterObject('score', 'Int', null, 128))
+	//		->add(new FieldGetterObject('c0', 'Int', null, 268435456))
+	//		->add(new FieldGetterObject('c1', 'Int', null, 536870912))
+	//		->add(new FieldGetterObject('c2', 'Int', null, 1073741824))
+	//		->add(new FieldGetterObject('c3', 'Int', null, -2147483648));
 	//}
 
 	//dump('KONIEC');
@@ -817,25 +1008,14 @@ $classes[] = <<<'CONSTRUCTOR'
 /**
  * @constructor
  *
- * @param {Object}  config              RoomConfig is passed to HBInit to configure the ROOM, all values are optional.
- * @param {string}  config.roomName     The name for the ROOM.
- * @param {string}  config.playerName   The name for the host player.
- * @param {string}  config.password     The password for the ROOM (no password if ommited).
- * @param {number}  config.maxPlayers   The name for the host player.
- * @param {boolean} config.public       If true the ROOM will appear in the ROOM list.
- * @param {Object}  config.geo          GeoLocation override for the ROOM.
- * @param {string}  config.geo.code     GeoLocation country code.
- * @param {number}  config.geo.lat      GeoLocation latitude.
- * @param {number}  config.geo.lon      GeoLocation longitude.
- * @param {string}  config.token        Can be used to skip the recaptcha by setting it to a token that can be obtained <a href="https://www.haxball.com/headlesstoken" >here</a>. These tokens will expire after a few minutes.
- * @param {boolean} config.noPlayer     If set to true the ROOM player list will be empty, the playerName setting will be ignored.
+ * @param {RoomConfigObject} roomConfig
  *
  * @return {RoomObject}
  *
  * @link https://github.com/haxball/haxball-issues/wiki/Headless-Host Documentation
  * @link https://html5.haxball.com/headless                           Headless server host
  */
-var HBInit = function (config) {
+function HBInit(roomConfig) {
 };
 CONSTRUCTOR;
 

@@ -8,7 +8,7 @@
 export const TeamID = {
 	Spectators: 0,
 	RedTeam: 1,
-	BlueTeam: 2
+	BlueTeam: 2,
 };
 
 /**

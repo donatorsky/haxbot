@@ -1,16 +1,16 @@
 'use strict';
 
-import {ADMINS, STORAGE_PREFIX, ROOM_CONFIG} from './configuration.js';
-import {CommandsStore} from "./Commands/CommandsStore";
-import {Command} from "./Commands/Command";
-import {AdminInfo, PlayerInfo, PlayersManager} from "./Players/PlayersManager";
-import {GameManager, GoalInfo} from "./Game/GameManager";
-import {TeamID, TOUCHED_BALL_THRESHOLD} from "./Utils/constants";
-import {calculateDistance, getTime, table} from "./Utils/Utils";
-import {ScopedStorage} from "./Storage/ScopedStorage";
-import {LocalStorageStorage} from "./Storage/LocalStorageStorage";
-import {CachingStorage} from "./Storage/CachingStorage";
+import {ADMINS, STORAGE_PREFIX, ROOM_CONFIG}       from './configuration.js';
+import {Command}                                   from "./Commands/Command";
+import {CommandsStore}                             from "./Commands/CommandsStore";
+import {GameManager, GoalInfo}                     from "./Game/GameManager";
+import {AdminInfo, PlayerInfo, PlayersManager}     from "./Players/PlayersManager";
+import {CachingStorage}                            from "./Storage/CachingStorage";
+import {LocalStorageStorage}                       from "./Storage/LocalStorageStorage";
+import {ScopedStorage}                             from "./Storage/ScopedStorage";
 import {StoreItemTransformer, TransformingStorage} from "./Storage/TransformingStorage";
+import {TeamID, TOUCHED_BALL_THRESHOLD}            from "./Utils/constants";
+import {calculateDistance, getTime, table}         from "./Utils/Utils";
 
 // Obiekty i konstrukcje pomocnicze
 let serverLightMode = false;
@@ -69,7 +69,7 @@ class PlayerInfoStoreItemTransformer extends StoreItemTransformer {
 	/**
 	 * @inheritDoc
 	 */
-	supports(key, item) {
+	supports(key, _) {
 		return /player\.[\w-]{43}$/.test(key);
 	}
 }
@@ -83,10 +83,7 @@ class PlayerInfoStoreItemTransformer extends StoreItemTransformer {
  * @type {CommandsStore}
  */
 const COMMANDS = new CommandsStore([
-	new Command("help", /**
-	 * @param {PlayerObject} player
-	 * @param {string|undefined} arg
-	 */(player, arg) => {
+	new Command("help", (player, arg) => {
 		if (undefined === arg) {
 			ROOM.sendAnnouncement(`Dostępne polecenia: !${COMMANDS.getCommandsNames(player).join(', !')}
 Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylko do niego`, player.id);
@@ -103,19 +100,17 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 		return false;
 	}),
 
-	new Command("me", /**
-	 * @param {PlayerObject} player
-	 */(player) => {
+	new Command("me", (player) => {
 		const playerInfo = PLAYERS.get(player),
 		      goalsTotal = playerInfo.goals + playerInfo.assists + playerInfo.ownGoals,
 		      lines      = [
 			      `👤 ${player.name}, 🙈 AFK: ${PLAYERS.isAfk(player) ? 'tak' : 'nie'}`,
-			      `⏰ Czas spędzony na serwerze: ogółem: ${getTime(PLAYERS.getTotalTimeOnServer(player))}, teraz: ${getTime(PLAYERS.getTodayTimeOnServer(player))}`
+			      `⏰ Czas spędzony na serwerze: ogółem: ${getTime(PLAYERS.getTotalTimeOnServer(player))}, teraz: ${getTime(PLAYERS.getTodayTimeOnServer(player))}`,
 		      ];
 
 		lines.push(goalsTotal > 0 ?
 			`📊 Statystyki goli: ⚽ strzelone: ${playerInfo.goals} (${(playerInfo.goals * 100 / goalsTotal).toFixed(1)}%), 🏃‍♂️ asysty: ${playerInfo.assists} (${(playerInfo.assists * 100 / goalsTotal).toFixed(1)}%), 😂 samobóje: ${playerInfo.ownGoals} (${(playerInfo.ownGoals * 100 / goalsTotal).toFixed(1)}%)` :
-			"📊 Statystyki goli: ⚽ strzelone: 0 (0.0%), 🏃‍♂️ asysty: 0 (0.0%), 😂 samobóje: 0 (0.0%)"
+			"📊 Statystyki goli: ⚽ strzelone: 0 (0.0%), 🏃‍♂️ asysty: 0 (0.0%), 😂 samobóje: 0 (0.0%)",
 		);
 
 		ROOM.sendAnnouncement(lines.join("\n"), player.id);
@@ -123,10 +118,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 		return false;
 	}, "!me\nWypisuje informacje na temat Twoich statystyk.", () => !serverLightMode),
 
-	new Command("stats", /**
-	 * @param {PlayerObject} player
-	 * @param {string|undefined} arg
-	 */(player, arg) => {
+	new Command("stats", (player, arg) => {
 		let data = [];
 		const playersSorter = (a, b) => {
 			if (a[1] !== b[1]) {
@@ -153,7 +145,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						player.goals,
 						player.assists,
 						player.ownGoals,
-						player.name
+						player.name,
 					]);
 				}
 
@@ -163,7 +155,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						value[0] = index + 1;
 
 						return value;
-					})
+					}),
 				), player.id);
 				break;
 
@@ -175,7 +167,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						player.goals,
 						player.assists,
 						player.ownGoals,
-						player.name
+						player.name,
 					]);
 				}
 
@@ -185,7 +177,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						value[0] = index + 1;
 
 						return value;
-					}).slice(0, 10)
+					}).slice(0, 10),
 				), player.id);
 				break;
 
@@ -199,7 +191,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						playerInfo.goals,
 						playerInfo.assists,
 						playerInfo.ownGoals,
-						player.name
+						player.name,
 					]);
 				}
 
@@ -209,7 +201,7 @@ Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylk
 						value[0] = index + 1;
 
 						return value;
-					})
+					}),
 				), player.id);
 				break;
 		}
@@ -227,10 +219,7 @@ Dostępne opcje:
  players\t\tWyświetla statystyki dla wszystkich graczy obecnych na serwerze.
  top, top10\tWyświetla statystyki dla TOP10 graczy serwera.`, () => !serverLightMode),
 
-	new Command("team", /**
-	 * @param {PlayerObject} sender
-	 * @param {string|undefined} arg
-	 */(sender, arg) => {
+	new Command("team", (sender, arg) => {
 		if (undefined === arg) {
 			ROOM.sendAnnouncement(`Wpisz treść wiadomości drużynowej i wyślij jeszcze raz, np.: !team Moja wiadomość`, sender.id);
 
@@ -244,10 +233,7 @@ Dostępne opcje:
 		return false;
 	}, "!team Wiadomość\nWysyła wiadomość tylko do Twojej obecnej drużyny."),
 
-	new Command("direct", /**
-	 * @param {PlayerObject} sender
-	 * @param {string|undefined} arg
-	 */(sender, arg) => {
+	new Command("direct", (sender, arg) => {
 		if (undefined === arg) {
 			ROOM.sendAnnouncement(`Wpisz treść wiadomości bezpośredniej i wyślij jeszcze raz, np.: !direct «@Nazwa Gracza» «Twoja wiadomość»`, sender.id);
 
@@ -277,10 +263,7 @@ Dostępne opcje:
 		return false;
 	}, "!direct @gracz wiadomość\nWysyła wiadomość prywatną do sprecyzowanego gracza."),
 
-	new Command("login", /**
-	 * @param {PlayerObject} player
-	 * @param {string|undefined} arg
-	 */(player, arg) => {
+	new Command("login", (player, arg) => {
 		if (undefined === arg) {
 			ROOM.sendAnnouncement("Podaj nazwę użytkownika i hasło", player.id);
 
@@ -305,23 +288,17 @@ Dostępne opcje:
 		return false;
 	}, "!login «użytkownik» «hasło»\nLoguje użytkownika jako administrator."),
 
-	new Command("logout", /**
-	 * @param {PlayerObject} player
-	 */(player) => {
+	new Command("logout", (player) => {
 		if (player.admin) {
 			ROOM.setPlayerAdmin(player.id, false);
 		}
 
 		return false;
-	}, "!logout\nWylogowuje użytkownika z funkcji administratora.", /**
-	 * @param {PlayerObject} player
-	 */(player) => player.admin),
+	}, "!logout\nWylogowuje użytkownika z funkcji administratora.", (player) => player.admin),
 
-	new Command("dump", /**
-	 * @param {PlayerObject} player
-	 */(player) => {
+	new Command("dump", (player) => {
 		const data = {
-			players: PLAYERS.all()
+			players: PLAYERS.all(),
 		};
 
 		console.info(JSON.stringify(data));
@@ -329,14 +306,9 @@ Dostępne opcje:
 		ROOM.sendAnnouncement("💾 Zrzut pamięci zakończony, zobacz konsolę.", player.id);
 
 		return false;
-	}, "!dump\nZrzuca stan pamięci serwera.", /**
-	 * @param {PlayerObject} player
-	 */(player) => player.admin),
+	}, "!dump\nZrzuca stan pamięci serwera.", (player) => player.admin),
 
-	new Command("match", /**
-	 * @param {PlayerObject} player
-	 * @param {string|undefined} arg
-	 */(player, arg) => {
+	new Command("match", (player, arg) => {
 		if (undefined === arg) {
 			ROOM.sendAnnouncement("Podaj wymagane argumenty. Wpisz «!help match» aby dowiedzieć się więcej.", player.id);
 
@@ -412,14 +384,9 @@ Dostępne opcje trybów gry:
   teamSize=3	Rozmiar drużyny
  mode=random:
   limit=3		Limit rozegranych meczy. (0 - brak)
-  teamSize=3	Rozmiar drużyny (0 - brak)`, /**
-	 * @param {PlayerObject} player
-	 */(player) => player.admin && !serverLightMode),
+  teamSize=3	Rozmiar drużyny (0 - brak)`, (player) => player.admin && !serverLightMode),
 
-	new Command("light-mode", /**
-	 * @param {PlayerObject} player
-	 * @param {string|undefined} arg
-	 */(player, arg) => {
+	new Command("light-mode", (player, arg) => {
 		switch ((arg ?? '').toLowerCase()) {
 			case 'off':
 				serverLightMode = false;
@@ -450,9 +417,7 @@ Przykłady:
 
 Dostępne statusy:
  on\tWłącza tryb lekki
- off\tWyłącza tryb lekki`, /**
-	 * @param {PlayerObject} player
-	 */(player) => player.admin),
+ off\tWyłącza tryb lekki`, (player) => player.admin),
 ]);
 // /KONFIGURACJA
 
@@ -460,7 +425,7 @@ Dostępne statusy:
 const ROOM    = HBInit(ROOM_CONFIG),
       // ROOM    = {},
       STORAGE = new ScopedStorage(new CachingStorage(new TransformingStorage(new LocalStorageStorage(), [
-	      new PlayerInfoStoreItemTransformer()
+	      new PlayerInfoStoreItemTransformer(),
       ])), STORAGE_PREFIX),
       PLAYERS = new PlayersManager(ROOM, STORAGE),
       GAME    = new GameManager(ROOM, PLAYERS);
@@ -487,9 +452,6 @@ window.addEventListener("unload", function () {
 
 PLAYERS.setAdmins(ADMINS);
 
-/**
- * @param {PlayerObject} player
- */
 ROOM.onPlayerJoin = function (player) {
 	ROOM.setPlayerAdmin(player.id, PLAYERS.verifyAdminAuthToken(player.auth));
 
@@ -502,19 +464,10 @@ ROOM.onPlayerJoin = function (player) {
 	}
 };
 
-/**
- * @param {PlayerObject} player
- */
 ROOM.onPlayerLeave = function (player) {
 	PLAYERS.disconnect(player);
 };
 
-/**
- * @param {PlayerObject} player
- * @param {string} message
- *
- * @return {boolean}
- */
 ROOM.onPlayerChat = function (player, message) {
 	const regex = /^\s*!([\w\-]+)\s*(.+)?$/;
 	let m;
@@ -528,9 +481,6 @@ ROOM.onGameStart = function () {
 	//
 };
 
-/**
- * @param {ScoresObject} scores
- */
 ROOM.onTeamVictory = function (scores) {
 	if (serverLightMode) {
 		return;
@@ -565,9 +515,6 @@ ROOM.onPositionsReset = function () {
 	GAME.resetBallTouches();
 };
 
-/**
- * @param {PlayerObject} player
- */
 ROOM.onPlayerBallKick = function (player) {
 	if (serverLightMode) {
 		return;
@@ -576,9 +523,6 @@ ROOM.onPlayerBallKick = function (player) {
 	GAME.registerBallTouch(player);
 };
 
-/**
- * @param {TeamID} team
- */
 ROOM.onTeamGoal = function (team) {
 	if (serverLightMode) {
 		return;
@@ -624,7 +568,7 @@ ROOM.onTeamGoal = function (team) {
 				lastPlayerContactedBall[1].playerId :
 				null,
 			scores.time,
-			team
+			team,
 		));
 	}
 };

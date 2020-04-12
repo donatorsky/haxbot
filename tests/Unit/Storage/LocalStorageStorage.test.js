@@ -6,7 +6,7 @@ const getItem        = jest.fn(),
 
 beforeAll(() => {
 	Object.defineProperty(window, 'localStorage', {
-		value: {getItem, setItem, hasOwnProperty}
+		value: {getItem, setItem, hasOwnProperty},
 	});
 });
 

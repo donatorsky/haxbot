@@ -75,6 +75,8 @@ export class TransformingStorage extends AbstractStorage {
 			for (const transformer of this._transformers) {
 				if (transformer.supports(key, value)) {
 					items[key] = transformer.decode(value);
+
+					break;
 				}
 			}
 		}
