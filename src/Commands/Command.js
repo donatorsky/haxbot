@@ -6,6 +6,11 @@
 let CommandLogicHandler;
 
 /**
+ * @typedef {function((string|undefined), PlayerObject): string} CommandDescriptionHandler
+ */
+let CommandDescriptionHandler;
+
+/**
  * @typedef {function(PlayerObject): boolean} CommandVisibilityHandler
  */
 let CommandVisibilityHandler;
@@ -16,10 +21,10 @@ let CommandVisibilityHandler;
 export class Command {
 
 	/**
-	 * @param {string}                              name
-	 * @param {CommandLogicHandler}                 handler
-	 * @param {?string}                             description
-	 * @param {boolean|CommandVisibilityHandler}    isVisible
+	 * @param {string}                                  name
+	 * @param {CommandLogicHandler}                     handler
+	 * @param {string|CommandDescriptionHandler|null}   description
+	 * @param {boolean|CommandVisibilityHandler}        isVisible
 	 */
 	constructor(name, handler, description = null, isVisible = true) {
 		/**
@@ -35,7 +40,7 @@ export class Command {
 		this._handler = handler;
 
 		/**
-		 * @type {?string}
+		 * @type {string|CommandDescriptionHandler|null}
 		 * @private
 		 */
 		this._description = description;
@@ -55,10 +60,21 @@ export class Command {
 	}
 
 	/**
-	 * @return {?string}
+	 * @param {string|undefined}    arg
+	 * @param {PlayerObject}        player
+	 *
+	 * @return {string}
 	 */
-	getDescription() {
-		return this._description;
+	getDescription(arg, player) {
+		if (null === this._description) {
+			throw new Error('No help information available for this command');
+		}
+
+		if ('string' === typeof this._description) {
+			return this._description;
+		}
+
+		return this._description.call(null, arg, player);
 	}
 
 	/**

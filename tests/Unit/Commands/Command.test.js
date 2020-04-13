@@ -12,17 +12,33 @@ test('Command can be constructed with default parameters', () => {
 
 	expect(command.getName()).toBe('name');
 	expect(command.hasDescription()).toBe(false);
-	expect(command.getDescription()).toBe(null);
+	expect(() => command.getDescription(undefined, {})).toThrow(new Error('No help information available for this command'));
 	expect(command.isVisible(newPlayerObjectMock())).toBe(true);
 });
 
-test('Command can be constructed with custom description', () => {
+test('Command can be constructed with custom description string', () => {
 	const command = new Command('name', () => true, 'Lorem ipsum');
 
 	expect(command.getName()).toBe('name');
 	expect(command.hasDescription()).toBe(true);
-	expect(command.getDescription()).toBe('Lorem ipsum');
+	expect(command.getDescription(undefined, {})).toBe('Lorem ipsum');
 	expect(command.isVisible(newPlayerObjectMock())).toBe(true);
+});
+
+test('Command can be constructed with custom description handler', () => {
+	const generatedDescriptionString = 'Lorem ipsum';
+	const descriptionHandlerMock = jest.fn().mockImplementationOnce(() => generatedDescriptionString);
+	const command = new Command('name', () => true, descriptionHandlerMock);
+
+	expect(command.getName()).toBe('name');
+	expect(command.hasDescription()).toBe(true);
+
+	const commandArguments = 'my command arguments';
+	const commandPlayerObject = newPlayerObjectMock(123);
+	expect(command.getDescription(commandArguments, commandPlayerObject)).toBe(generatedDescriptionString);
+
+	expect(descriptionHandlerMock).toBeCalledTimes(1);
+	expect(descriptionHandlerMock).toBeCalledWith(commandArguments, commandPlayerObject);
 });
 
 test('Command can be constructed with visibility set to false', () => {
@@ -30,7 +46,7 @@ test('Command can be constructed with visibility set to false', () => {
 
 	expect(command.getName()).toBe('name');
 	expect(command.hasDescription()).toBe(false);
-	expect(command.getDescription()).toBe(null);
+	expect(() => command.getDescription(undefined, {})).toThrow(new Error('No help information available for this command'));
 	expect(command.isVisible(newPlayerObjectMock())).toBe(false);
 });
 
@@ -41,7 +57,7 @@ test('Command can be constructed with custom visibility handler', () => {
 
 	expect(command.getName()).toBe('name');
 	expect(command.hasDescription()).toBe(false);
-	expect(command.getDescription()).toBe(null);
+	expect(() => command.getDescription(undefined, {})).toThrow(new Error('No help information available for this command'));
 	expect(command.isVisible(playerThatCanUseCommand)).toBe(true);
 	expect(command.isVisible(playerThatCannotUseCommand)).toBe(false);
 });

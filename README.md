@@ -3,6 +3,10 @@ Server script for HaxBall game.
 
 The project uses [google/closure-compiler](https://github.com/google/closure-compiler) for compiling output script.
 
+## Configuration
+
+Create your own `configuration.js` file in `src` folder. You can use `src/configuration.js.dist` as a reference.
+
 ## Commands
 
 ### Download server stub

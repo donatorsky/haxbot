@@ -1,10 +1,10 @@
 'use strict';
 
-import {ADMINS, STORAGE_PREFIX, ROOM_CONFIG}       from './configuration.js';
 import {Command}                                   from "./Commands/Command";
 import {CommandsStore}                             from "./Commands/CommandsStore";
-import {GameManager, GoalInfo}                     from "./Game/GameManager";
-import {AdminInfo, PlayerInfo, PlayersManager}     from "./Players/PlayersManager";
+import {ADMINS, ROOM_CONFIG, STORAGE_PREFIX}       from './configuration.js';
+import {GAME_MODES, GameManager, GoalInfo}         from "./Game/GameManager";
+import {PlayerInfo, PlayersManager}                from "./Players/PlayersManager";
 import {CachingStorage}                            from "./Storage/CachingStorage";
 import {LocalStorageStorage}                       from "./Storage/LocalStorageStorage";
 import {ScopedStorage}                             from "./Storage/ScopedStorage";
@@ -114,14 +114,24 @@ const COMMANDS = new CommandsStore([
 		if (undefined === arg) {
 			ROOM.sendAnnouncement(`Dostępne polecenia: !${COMMANDS.getCommandsNames(player).join(', !')}
 Możesz także napisać «!help [nazwa polecenia]», aby wyświetlić pomoc tylko do niego`, player.id);
-		} else {
-			const command = COMMANDS.get(arg);
 
-			if (null !== command && command.hasDescription()) {
-				ROOM.sendAnnouncement(command.getDescription(), player.id);
-			} else {
-				ROOM.sendAnnouncement(`Brak dostępnej pomocy dla polecenia "${arg}"`, player.id);
-			}
+			return false;
+		}
+
+		const match = /^!?([\w-]+)(?:\s+(.+))?/.exec(arg);
+
+		if (null === match) {
+			ROOM.sendAnnouncement(`Brak dostępnej pomocy lub nierozpoznane polecenie "${arg}"`, player.id);
+
+			return false;
+		}
+
+		const command = COMMANDS.get(match[1]);
+
+		if (null !== command && command.hasDescription()) {
+			ROOM.sendAnnouncement(command.getDescription(match[2], player), player.id);
+		} else {
+			ROOM.sendAnnouncement(`Brak dostępnej pomocy dla polecenia "${arg}"`, player.id);
 		}
 
 		return false;
@@ -382,8 +392,11 @@ Dostępne opcje:
 		}
 
 		return false;
-	}, `!match «akcja»
+	}, (arg, player) => {
+		if (undefined === arg) {
+			return `!match «akcja»
 Pozwala na zarządzanie meczem w konkretnym trybie.
+Aby dowiedzieć się więcej na temat konkretnej akcji, wpisz «!help match [akcja]».
 
 Przykłady:
  !match start
@@ -395,23 +408,93 @@ Przykłady:
 Dostępne akcje:
  start		Rozpoczyna automatycznie zarządzany mecz (bez podanego trybu: używając ostatnio użytej konfiguracji).
  restart		Ponownie rozpoczyna automatycznie zarządzany mecz.
- stop		Zatrzymuje obecnie trwający mecz i wychodzi z trybu automatycznego zarządzania.
+ stop		Zatrzymuje obecnie trwający mecz i wychodzi z trybu automatycznego zarządzania.`;
+		}
 
-Dostępne tryby gry (mode):
+		const args = arg.split(/\s+/);
+
+		switch (args[0].toLowerCase()) {
+			case 'start':
+				if (undefined === args[1]) {
+					return `!match start «tryb» «opcje»
+Pozwala na rozpoczęcie meczu w konkretnym trybie.
+Aby dowiedzieć się więcej na temat konkretnego trybu gry, wpisz «!help match start [tryb]».
+
+Przykłady:
+ !match start bo limit=3
+ !match start ut limit=5 teamSize=2
+ !match start random limit=5 teamSize=0
+
+Dostępne «tryby» gry:
  bo			Best Of - rozegranie do n gier (wygrywa drużyna, która jako pierwsza zdobędzie ponad połowę zwycięstw).
  ut			Up To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
- random	W każdym meczu losowe drużyny.
+ random	W każdym meczu losowe drużyny.`;
+				}
 
-Dostępne opcje trybów gry:
- mode=bo:
-  limit=3		Limit rozegranych meczy.
-  teamSize=3	Rozmiar drużyny
- mode=ut:
-  limit=3		Limit rozegranych meczy.
-  teamSize=3	Rozmiar drużyny
- mode=random:
-  limit=3		Limit rozegranych meczy. (0 - brak)
-  teamSize=3	Rozmiar drużyny (0 - brak)`, (player) => player.admin && !serverLightMode),
+				switch (args[1].toLowerCase()) {
+					case GAME_MODES.BO:
+						return `!match start ${GAME_MODES.BO} «opcja1» «opcja2»
+Rozpoczyna turniej w trybie Best Of - rozegranie do n gier (wygrywa drużyna, która jako pierwsza zdobędzie ponad połowę zwycięstw).
+
+Przykłady:
+ !match start bo limit=3 teamSize=3
+ !match start bo limit=0 teamSize=3
+
+Dostępne opcje:
+ limit=3		Limit rozegranych meczy.
+ teamSize=3	Rozmiar drużyny`;
+
+					case GAME_MODES.UT:
+						return `!match start ${GAME_MODES.UT} «opcja1» «opcja2»
+Rozpoczyna turniej w trybie Up To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
+
+Przykłady:
+ !match start ut limit=3 teamSize=3
+ !match start ut limit=0 teamSize=3
+
+Dostępne opcje:
+ limit=3		Limit rozegranych meczy.
+ teamSize=3	Rozmiar drużyny`;
+
+					case GAME_MODES.RANDOM:
+						return `!match start ${GAME_MODES.RANDOM} «opcja1» «opcja2»
+Rozpoczyna turniej w trybie losowych zespołów. W każdym meczu losowane są nowe drużyny.
+
+Przykłady:
+ !match start random limit=3 teamSize=3
+ !match start random limit=0 teamSize=0
+
+Dostępne opcje:
+ limit=3		Limit rozegranych meczy. (0 - brak)
+ teamSize=3	Rozmiar drużyny (0 - brak)`;
+
+					default:
+						console.debug(arg, player);
+
+						return `Nieznany tryb gry "${args[1]}". Aby dowiedzieć się więcej na temat dostępnych trybów gry, wpisz «!help match start».`;
+				}
+
+			case 'restart':
+				return `!match restart
+Pozwala na ponowne rozpoczęcie meczu w ostatnio użytym trybie.
+Aby dowiedzieć się więcej na temat dostępnych trybów gry, wpisz «!help match start».
+
+Przykłady:
+ !match restart`;
+
+			case 'stop':
+				return `!match stop
+Zatrzymuje obecnie trwający mecz i wychodzi z trybu automatycznego zarządzania.
+
+Przykłady:
+ !match stop`;
+
+			default:
+				console.debug(arg, player);
+
+				return `Brak dostępnej pomocy dla polecenia "!match ${arg}"`;
+		}
+	}, (player) => player.admin && !serverLightMode),
 
 	new Command("light-mode", (player, arg) => {
 		switch ((arg ?? '').toLowerCase()) {

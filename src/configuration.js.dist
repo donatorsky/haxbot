@@ -5,6 +5,8 @@
 /**
  * Game server settings.
  *
+ * @type {!RoomConfigObject}
+ *
  * @see HBInit
  */
 export const ROOM_CONFIG = {
