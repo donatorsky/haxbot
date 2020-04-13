@@ -74,6 +74,33 @@ class PlayerInfoStoreItemTransformer extends StoreItemTransformer {
 	}
 }
 
+/**
+ * @extends {StoreItemTransformer<number>}
+ */
+class NumberStoreItemTransformer extends StoreItemTransformer {
+
+	/**
+	 * @inheritDoc
+	 */
+	encode(item) {
+		return item.toString();
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	decode(item) {
+		return parseInt(item, 10);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	supports(key, _) {
+		return /game.(?:score-limit|time-limit)$/.test(key);
+	}
+}
+
 // /Obiekty i konstrukcje pomocnicze
 
 // KONFIGURACJA
@@ -426,17 +453,18 @@ const ROOM    = HBInit(ROOM_CONFIG),
       // ROOM    = {},
       STORAGE = new ScopedStorage(new CachingStorage(new TransformingStorage(new LocalStorageStorage(), [
 	      new PlayerInfoStoreItemTransformer(),
+	      new NumberStoreItemTransformer(),
       ])), STORAGE_PREFIX),
       PLAYERS = new PlayersManager(ROOM, STORAGE),
-      GAME    = new GameManager(ROOM, PLAYERS);
+      GAME    = new GameManager(ROOM, PLAYERS, STORAGE);
 
 const KICKABLE_AND_SCORABLE_BALL_MASK = ROOM.CollisionFlags.ball | ROOM.CollisionFlags.kick | ROOM.CollisionFlags.score,
       ANY_TEAM_BALL                   = ROOM.CollisionFlags.blue | ROOM.CollisionFlags.red | ROOM.CollisionFlags.blueKO | ROOM.CollisionFlags.redKO;
 
 ROOM.setDefaultStadium("Classic");
-ROOM.setScoreLimit(3);
-ROOM.setTimeLimit(0);
-ROOM.setTeamsLock(true);
+ROOM.setScoreLimit(GAME.getScoreLimit());
+ROOM.setTimeLimit(GAME.getTimeLimit());
+ROOM.setTeamsLock(false);
 
 setInterval(function () {
 	console.log('Autosaving players state');
@@ -478,7 +506,10 @@ ROOM.onPlayerChat = function (player, message) {
 };
 
 ROOM.onGameStart = function () {
-	//
+	const scores = ROOM.getScores();
+
+	GAME.setTimeLimit(scores.timeLimit);
+	GAME.setScoreLimit(scores.scoreLimit);
 };
 
 ROOM.onTeamVictory = function (scores) {
@@ -496,13 +527,19 @@ ROOM.onGameStop = function () {
 
 	console.log('onGameStop', GAME.getStats());
 
-	const goalsSummary = ["Podsumowanie goli z meczu:"];
+	const goalInfos = GAME.goals;
 
-	for (const goal of GAME.goals) {
-		goalsSummary.push(`  ${TeamID.RedTeam === goal.byTeam ? "🔴" : "🔵"} [${getTime(goal.scoredAt)}] Gol gracza ${PLAYERS.get(goal.goalBy).name}${null !== goal.assistBy ? ` przy asyście gracza ${PLAYERS.get(goal.assistBy).name}` : ''}`);
+	if (goalInfos.length > 0) {
+		const goalsSummary = ["Podsumowanie goli z meczu:"];
+
+		for (const goal of goalInfos) {
+			goalsSummary.push(`  ${TeamID.RedTeam === goal.byTeam ? "🔴" : "🔵"} [${getTime(goal.scoredAt)}] Gol gracza ${PLAYERS.get(goal.goalBy).name}${null !== goal.assistBy ? ` przy asyście gracza ${PLAYERS.get(goal.assistBy).name}` : ''}`);
+		}
+
+		ROOM.sendAnnouncement(goalsSummary.join("\n"));
+	} else {
+		ROOM.sendAnnouncement("Podsumowanie goli z meczu:\nNik nic nie strzelił 😮");
 	}
-
-	ROOM.sendAnnouncement(goalsSummary.join("\n"));
 
 	GAME.end();
 };

@@ -1,6 +1,8 @@
 'use strict';
 
 import {PlayersManager}           from "../Players/PlayersManager";
+import {AbstractStorage}          from '../Storage/AbstractStorage';
+import {ScopedStorage}            from '../Storage/ScopedStorage';
 import {ASSIST_VALID_FOR, TeamID} from "../Utils/constants";
 import {popNRandomElements}       from "../Utils/Utils";
 
@@ -12,6 +14,9 @@ export const GAME_MODES = {
 
 export class GameManager {
 
+	/**
+	 * @return {Array.<GoalInfo>}
+	 */
 	get goals() {
 		return this._goals;
 	}
@@ -58,19 +63,25 @@ export class GameManager {
 	/**
 	 * @param {RoomObject} roomObject
 	 * @param {PlayersManager} playersManager
+	 * @param {AbstractStorage} storage
 	 */
-	constructor(roomObject, playersManager) {
+	constructor(roomObject, playersManager, storage) {
 		/**
 		 * @type {RoomObject}
 		 * @private
 		 */
 		this._roomObject = roomObject;
-
 		/**
 		 * @type {PlayersManager}
 		 * @private
 		 */
 		this._playersManager = playersManager;
+
+		/**
+		 * @type {ScopedStorage<number>}
+		 * @private
+		 */
+		this._storage = new ScopedStorage(storage, 'game.');
 
 		/**
 		 * @type {Array.<GoalInfo>}
@@ -128,6 +139,54 @@ export class GameManager {
 			red: 0,
 			blue: 0,
 		};
+
+		if (!this._storage.has('score-limit')) {
+			this.setScoreLimit(3);
+		}
+
+		if (!this._storage.has('time-limit')) {
+			this.setTimeLimit(3);
+		}
+	}
+
+	/**
+	 * @return {number}
+	 */
+	getScoreLimit() {
+		return this._storage.get('score-limit') ?? 3;
+	}
+
+	/**
+	 * @param {number} limit Must be greater than or equal to 0
+	 *
+	 * @throws {Error} When score limit is less than 0
+	 */
+	setScoreLimit(limit) {
+		if (limit < 0) {
+			throw new Error(`The score limit cannot be less than 0, ${limit} provided`);
+		}
+
+		this._storage.set('score-limit', limit);
+	}
+
+	/**
+	 * @return {number}
+	 */
+	getTimeLimit() {
+		return this._storage.get('time-limit') ?? 3;
+	}
+
+	/**
+	 * @param {number} limit Must be greater than or equal to 0
+	 *
+	 * @throws {Error} When time limit is less than 0
+	 */
+	setTimeLimit(limit) {
+		if (limit < 0) {
+			throw new Error(`The time limit cannot be less than 0, ${limit} provided`);
+		}
+
+		this._storage.set('time-limit', limit);
 	}
 
 	/**
