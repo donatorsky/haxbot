@@ -1008,15 +1008,15 @@ $classes[] = <<<'CONSTRUCTOR'
 /**
  * @constructor
  *
- * @param {RoomConfigObject} roomConfig
+ * @param {!RoomConfigObject} roomConfig
  *
- * @return {RoomObject}
+ * @return {!RoomObject}
  *
  * @link https://github.com/haxball/haxball-issues/wiki/Headless-Host Documentation
  * @link https://html5.haxball.com/headless                           Headless server host
  */
 function HBInit(roomConfig) {
-};
+}
 CONSTRUCTOR;
 
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'stubs-' . date('Y-m-d_H_i_s') . '.js', implode("\n\n", $classes));

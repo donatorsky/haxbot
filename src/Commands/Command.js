@@ -109,4 +109,33 @@ export class Command {
 
 		return !!this._handler.call(null, player, arg, message);
 	}
+
+	/**
+	 * @param command
+	 *
+	 * @return {{arguments: !Array.<string>, options: !Object.<string, string>}}
+	 */
+	static getArgsAndOptions(command) {
+		const regex = /\b(\w+)(?:\s*=\s*([^\s]+))?/g,
+		      args  = {
+			      arguments: [],
+			      options: {},
+		      };
+		let m;
+
+		while (null !== (m = regex.exec(command))) {
+			// This is necessary to avoid infinite loops with zero-width matches
+			if (m.index === regex.lastIndex) {
+				regex.lastIndex++;
+			}
+
+			if (undefined === m[2]) {
+				args.arguments.push(m[1]);
+			} else {
+				args.options[m[1].toLowerCase()] = m[2];
+			}
+		}
+
+		return args;
+	}
 }

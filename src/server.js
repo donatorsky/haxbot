@@ -347,48 +347,35 @@ Dostępne opcje:
 
 	new Command("match", (player, arg) => {
 		if (undefined === arg) {
-			ROOM.sendAnnouncement("Podaj wymagane argumenty. Wpisz «!help match» aby dowiedzieć się więcej.", player.id);
+			ROOM.sendAnnouncement('Podaj wymagane argumenty. Wpisz «!help match» aby dowiedzieć się więcej.', player.id);
 
 			return false;
 		}
 
-		const regex = /\b(\w+)(?:\s*=\s*([^\s]+))?/g;
-		const args = {};
-		let m;
+		const args = Command.getArgsAndOptions(arg);
 
-		while ((m = regex.exec(arg)) !== null) {
-			// This is necessary to avoid infinite loops with zero-width matches
-			if (m.index === regex.lastIndex) {
-				regex.lastIndex++;
-			}
+		switch (args.arguments[0].toLowerCase()) {
+			case 'start':
+				try {
+					GAME.start((args.arguments[1] ?? 'previous').toLowerCase(), args.options);
+				} catch (e) {
+					ROOM.sendAnnouncement(`[BŁĄD] ${e.message}`, player.id);
+				}
+				break;
 
-			args[m[1].toLowerCase()] = m[2];
-		}
+			case 'stop':
+				ROOM.sendAnnouncement(`🏆 Przerywam turniej na żądanie gracza 👉 ${player.name} 👈! 😡`);
+				GAME.end();
+				break;
 
-		console.log(arg, args);
+			case 'restart':
+				ROOM.sendAnnouncement('🏆 Restartuję turniej... 🤦‍♂️');
+				GAME.restart();
+				break;
 
-		if (args.hasOwnProperty("start")) {
-			try {
-				GAME.start(
-					(args['mode'] ?? GAME.mode).toLowerCase(),
-					parseInt(args['limit'] ?? GAME.limit, 10),
-					parseInt(args['teamsize'] ?? GAME.teamSize, 10),
-				);
-
-				ROOM.sendAnnouncement(`🏆 Rozpoczynam turniej: typ - ${GAME.mode}, limit zwycięstw - ${GAME.limit}, maks. rozmiar drużyny - ${GAME.teamSize}`);
-			} catch (e) {
-				ROOM.sendAnnouncement(`[BŁĄD] ${e.message}`, player.id);
-			}
-		} else if (args.hasOwnProperty("stop")) {
-			ROOM.sendAnnouncement(`🏆 Przerywam turniej na żądanie ${player.name}! 😡`);
-			GAME.stop();
-		} else if (args.hasOwnProperty("restart")) {
-			ROOM.sendAnnouncement("🏆 Restartuję turniej... 🤦‍♂️");
-
-			COMMANDS.execute("match", player, "stop", "");
-			COMMANDS.execute("match", player, `start mode=${GAME.mode} limit=${GAME.limit}`, "");
-		} else {
-			ROOM.sendAnnouncement(`Nierozpoznany argument: ${arg}`, player.id);
+			default:
+				ROOM.sendAnnouncement(`Nierozpoznany argument: ${arg}`, player.id);
+				break;
 		}
 
 		return false;
@@ -401,7 +388,7 @@ Aby dowiedzieć się więcej na temat konkretnej akcji, wpisz «!help match [akc
 Przykłady:
  !match start
  !match start mode=bo limit=3
- !match start mode=ut limit=5 teamSize=2
+ !match start mode=rt limit=5 teamSize=2
  !match restart
  !match stop
 
@@ -422,13 +409,15 @@ Aby dowiedzieć się więcej na temat konkretnego trybu gry, wpisz «!help match
 
 Przykłady:
  !match start bo limit=3
- !match start ut limit=5 teamSize=2
+ !match start rt limit=5 teamSize=2
  !match start random limit=5 teamSize=0
+ !match start previous
 
 Dostępne «tryby» gry:
- bo			Best Of - rozegranie do n gier (wygrywa drużyna, która jako pierwsza zdobędzie ponad połowę zwycięstw).
- ut			Up To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
- random	W każdym meczu losowe drużyny.`;
+ bo				Best Of - rozegranie do n gier (wygrywa drużyna, która jako pierwsza zdobędzie ponad połowę zwycięstw).
+ rt				Race To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
+ random		W każdym meczu losowe drużyny.
+ previous	Rozpoczyna mecz z poprzednimi ustawieniami (ten tryb może być też pominięty w poleceniu i zostanie wybrany automatycznie).`;
 				}
 
 				switch (args[1].toLowerCase()) {
@@ -444,13 +433,13 @@ Dostępne opcje:
  limit=3		Limit rozegranych meczy.
  teamSize=3	Rozmiar drużyny`;
 
-					case GAME_MODES.UT:
-						return `!match start ${GAME_MODES.UT} «opcja1» «opcja2»
-Rozpoczyna turniej w trybie Up To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
+					case GAME_MODES.RT:
+						return `!match start ${GAME_MODES.RT} «opcja1» «opcja2»
+Rozpoczyna turniej w trybie Race To - rozegranie n gier (wygrywa drużyna, która jako pierwsza wygra n meczy).
 
 Przykłady:
- !match start ut limit=3 teamSize=3
- !match start ut limit=0 teamSize=3
+ !match start rt limit=3 teamSize=3
+ !match start rt limit=0 teamSize=3
 
 Dostępne opcje:
  limit=3		Limit rozegranych meczy.
@@ -608,15 +597,13 @@ ROOM.onGameStop = function () {
 		return;
 	}
 
-	console.log('onGameStop', GAME.getStats());
-
 	const goalInfos = GAME.goals;
 
 	if (goalInfos.length > 0) {
-		const goalsSummary = ["Podsumowanie goli z meczu:"];
+		const goalsSummary = ['Podsumowanie goli z meczu:'];
 
 		for (const goal of goalInfos) {
-			goalsSummary.push(`  ${TeamID.RedTeam === goal.byTeam ? "🔴" : "🔵"} [${getTime(goal.scoredAt)}] Gol gracza ${PLAYERS.get(goal.goalBy).name}${null !== goal.assistBy ? ` przy asyście gracza ${PLAYERS.get(goal.assistBy).name}` : ''}`);
+			goalsSummary.push(`  ${TeamID.RedTeam === goal.byTeam ? '🔴' : '🔵'} [${getTime(goal.scoredAt)}] Gol gracza ${PLAYERS.get(goal.goalBy).name}${null !== goal.assistBy ? ` przy asyście gracza ${PLAYERS.get(goal.assistBy).name}` : ''}`);
 		}
 
 		ROOM.sendAnnouncement(goalsSummary.join("\n"));
@@ -624,7 +611,7 @@ ROOM.onGameStop = function () {
 		ROOM.sendAnnouncement("Podsumowanie goli z meczu:\nNik nic nie strzelił 😮");
 	}
 
-	GAME.end();
+	GAME.stop();
 };
 
 ROOM.onPositionsReset = function () {

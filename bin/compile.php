@@ -35,7 +35,7 @@ $command = [
 	'--js_module_root', root_path('src'),
 	'--js', root_path('src', 'configuration.js'),
 	'--js', root_path('src', 'server.js'),
-	'--js', root_path('src', '*', '*.js'),
+	'--js', root_path('src', '*', '**.js'),
 	"--js='!**.test.js'",
 
 	'--strict_mode_input',
