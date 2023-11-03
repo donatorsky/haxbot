@@ -1,8 +1,12 @@
 /**
  * Retrieves N elements from data array randomly.
  *
- * @param {Array} data
+ * @template T
+ *
+ * @param {Array.<T>} data
  * @param {number} number
+ *
+ * @return {Array.<T>}
  */
 export function popNRandomElements(data, number) {
 	if (0 === data.length || number < 1) {
@@ -20,6 +24,28 @@ export function popNRandomElements(data, number) {
 	}
 
 	return randomElements;
+}
+
+/**
+ * Retrieves N elements from data array randomly.
+ *
+ * @template T
+ *
+ * @param {Array.<T>} data
+ *
+ * @return T|undefined
+ */
+export function popRandomElement(data) {
+	if (0 === data.length) {
+		return undefined;
+	}
+
+	const randomElementIndex = Math.floor(Math.random() * data.length),
+	      randomElement      = data[randomElementIndex];
+
+	data.splice(randomElementIndex, 1);
+
+	return randomElement;
 }
 
 /**

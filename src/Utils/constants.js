@@ -31,3 +31,17 @@ export const TOUCHED_BALL_THRESHOLD = KICKABLE_BALL_THRESHOLD / 2.0;
  * @const {number}
  */
 export const ASSIST_VALID_FOR = 5 * 1000;
+
+/**
+ * How long does "Red/Blue Scores!" text is being displayed (in milliseconds).
+ *
+ * @const {number}
+ */
+export const DISPLAY_TIME_SCORED = 2.5 * 1000;
+
+/**
+ * How long does "Red/Blue Scores! Red/Blue team is victorious" text is being displayed (in milliseconds).
+ *
+ * @const {number}
+ */
+export const DISPLAY_TIME_SCORED_AND_VICTORIOUS = 5 * 1000;
